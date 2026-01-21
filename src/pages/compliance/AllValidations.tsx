@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { FileCheck, RefreshCw, Search } from "lucide-react";
+import { FileCheck, RefreshCw, UserPlus, Users, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Table,
@@ -12,11 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ReportTypeBadge } from "@/components/ui/StatusBadge";
+import { ReportTypeBadge, StatusBadge } from "@/components/ui/StatusBadge";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface Validation {
@@ -25,6 +24,8 @@ interface Validation {
   type: "CTR" | "STR";
   entityName: string;
   transactionCount: number;
+  assignedTo: string;
+  status: "pending" | "accepted" | "returned" | "rejected";
   submittedDate: string;
   age: number;
   ageUnit: "d" | "h";
@@ -38,6 +39,8 @@ const mockValidations: Validation[] = [
     type: "CTR",
     entityName: "Bank of Monrovia",
     transactionCount: 847,
+    assignedTo: "Jane Doe",
+    status: "pending",
     submittedDate: "2026-01-20",
     age: 1,
     ageUnit: "d",
@@ -48,6 +51,8 @@ const mockValidations: Validation[] = [
     type: "CTR",
     entityName: "First Intl Bank",
     transactionCount: 234,
+    assignedTo: "John Smith",
+    status: "pending",
     submittedDate: "2026-01-19",
     age: 2,
     ageUnit: "d",
@@ -58,6 +63,8 @@ const mockValidations: Validation[] = [
     type: "CTR",
     entityName: "Ecobank Liberia",
     transactionCount: 12,
+    assignedTo: "Mary Johnson",
+    status: "pending",
     submittedDate: "2026-01-18",
     age: 3,
     ageUnit: "d",
@@ -68,20 +75,32 @@ const mockValidations: Validation[] = [
     type: "CTR",
     entityName: "UBA Liberia",
     transactionCount: 5,
+    assignedTo: "Unassigned",
+    status: "pending",
     submittedDate: "2026-01-17",
     age: 4,
     ageUnit: "d",
     overdue: true,
   },
+  {
+    id: "5",
+    referenceNumber: "FIA-2026-0230",
+    type: "STR",
+    entityName: "Bank of Monrovia",
+    transactionCount: 3,
+    assignedTo: "Jane Doe",
+    status: "accepted",
+    submittedDate: "2026-01-18",
+    age: 2,
+    ageUnit: "d",
+  },
 ];
 
-export default function ValidationQueue() {
-  const [statusFilter, setStatusFilter] = useState("pending");
-  const [reportTypeFilter, setReportTypeFilter] = useState("all");
-
+export default function AllValidations() {
   const breadcrumbItems = [
     { label: "Compliance Workspace", icon: <FileCheck className="h-5 w-5" /> },
-    { label: "Validation Queue" },
+    { label: "Validation Queue", link: "/validation" },
+    { label: "All Validations" },
   ];
 
   return (
@@ -93,7 +112,7 @@ export default function ValidationQueue() {
           <div>
             <h1 className="text-2xl font-semibold flex items-center gap-2">
               <FileCheck className="h-6 w-6 text-primary" />
-              My Assigned Validations (12 pending)
+              All Validations (25 pending, 145 completed)
             </h1>
           </div>
           <Button variant="outline" size="sm">
@@ -104,18 +123,32 @@ export default function ValidationQueue() {
 
         {/* Filters */}
         <div className="flex gap-2 flex-wrap">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select defaultValue="all">
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="all">All</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="accepted">Accepted</SelectItem>
+              <SelectItem value="returned">Returned</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select value={reportTypeFilter} onValueChange={setReportTypeFilter}>
+          <Select defaultValue="all">
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Assigned To" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Officers</SelectItem>
+              <SelectItem value="jane">Jane Doe</SelectItem>
+              <SelectItem value="john">John Smith</SelectItem>
+              <SelectItem value="mary">Mary Johnson</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select defaultValue="all">
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Report Type" />
             </SelectTrigger>
@@ -153,7 +186,8 @@ export default function ValidationQueue() {
                   <TableHead>Type</TableHead>
                   <TableHead>Entity</TableHead>
                   <TableHead>Trans</TableHead>
-                  <TableHead>Submitted</TableHead>
+                  <TableHead>Assigned To</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Age</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -169,7 +203,18 @@ export default function ValidationQueue() {
                     </TableCell>
                     <TableCell>{validation.entityName}</TableCell>
                     <TableCell>{validation.transactionCount}</TableCell>
-                    <TableCell className="text-muted-foreground">{validation.submittedDate}</TableCell>
+                    <TableCell>
+                      {validation.assignedTo === "Unassigned" ? (
+                        <Badge variant="outline" className="text-orange-600">
+                          Unassigned
+                        </Badge>
+                      ) : (
+                        validation.assignedTo
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={validation.status === "accepted" ? "validated" : validation.status} />
+                    </TableCell>
                     <TableCell>
                       <span className={validation.overdue ? "text-destructive font-medium" : ""}>
                         {validation.age}{validation.ageUnit}
@@ -177,9 +222,16 @@ export default function ValidationQueue() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link to={`/compliance/validation/${validation.referenceNumber}/validate`}>
-                        <Button size="sm">Validate</Button>
-                      </Link>
+                      {validation.assignedTo === "Unassigned" ? (
+                        <Button size="sm" variant="outline">
+                          <UserPlus className="h-4 w-4 mr-1" />
+                          Assign
+                        </Button>
+                      ) : (
+                        <Link to={`/validation/${validation.id}/validate`}>
+                          <Button size="sm">View</Button>
+                        </Link>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -191,7 +243,7 @@ export default function ValidationQueue() {
         {/* Pagination */}
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing 1-10 of 12 items
+            Showing 1-25 of 170 items
           </p>
           <Pagination>
             <PaginationContent>
@@ -205,23 +257,32 @@ export default function ValidationQueue() {
                 <PaginationLink href="#">2</PaginationLink>
               </PaginationItem>
               <PaginationItem>
+                <PaginationLink href="#">3</PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink href="#">...</PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink href="#">7</PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
                 <PaginationNext href="#" />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
 
-        {/* Quick Stats */}
+        {/* Summary Metrics */}
         <div className="grid grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="text-sm text-muted-foreground">Pending</div>
-              <div className="text-2xl font-semibold mt-1">12</div>
+              <div className="text-2xl font-semibold mt-1">25</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Today</div>
+              <div className="text-sm text-muted-foreground">Unassigned</div>
               <div className="text-2xl font-semibold mt-1">3</div>
             </CardContent>
           </Card>
@@ -234,10 +295,27 @@ export default function ValidationQueue() {
           <Card>
             <CardContent className="p-4">
               <div className="text-sm text-muted-foreground">Avg Time</div>
-              <div className="text-2xl font-semibold mt-1">2d</div>
+              <div className="text-2xl font-semibold mt-1">2.1d</div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardContent className="p-4 flex gap-2">
+            <Button variant="outline" size="sm">
+              <Users className="h-4 w-4 mr-2" />
+              Assign Unassigned
+            </Button>
+            <Button variant="outline" size="sm">
+              Bulk Reassign
+            </Button>
+            <Button variant="outline" size="sm">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Export Report
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 export interface BreadcrumbItem {
   label: string;
   href?: string;
+  link?: string;
   icon?: React.ReactNode;
 }
 
@@ -24,9 +25,9 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
               {index > 0 && (
                 <ChevronRight className="h-4 w-4 text-gray-300" />
               )}
-              {item.href && !isLast ? (
+              {(item.href || item.link) && !isLast ? (
                 <Link
-                  to={item.href}
+                  to={item.href || item.link || "#"}
                   className="flex items-center gap-2 text-primary hover:underline"
                 >
                   {item.icon && <span className="h-5 w-5">{item.icon}</span>}

@@ -18,6 +18,7 @@ import {
   Shield,
   Upload,
   FileCheck,
+  UserPlus,
   RotateCcw,
   TrendingUp,
 } from "lucide-react";
@@ -63,16 +64,15 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
         {
           label: "My Work",
           items: [
-            { title: "Validation Queue", href: "/validation", icon: FileCheck, badge: 8 },
-            { title: "CTR Review", href: "/ctr-review", icon: FileText, badge: 15 },
-            { title: "Alerts", href: "/alerts", icon: AlertTriangle, badge: 3, badgeVariant: "critical" },
+            { title: "Validation Queue", href: "/compliance/validation", icon: FileCheck, badge: 8 },
+            { title: "CTR Review", href: "/compliance/ctr-review", icon: FileText, badge: 15 },
+            { title: "Alerts", href: "/compliance/alerts/active", icon: AlertTriangle, badge: 3, badgeVariant: "critical" },
           ],
         },
         {
           label: "My Activity",
           items: [
-            { title: "Recent Reports", href: "/recent", icon: Clock },
-            { title: "Flagged CTRs", href: "/flagged", icon: Flag },
+            { title: "Flagged CTRs", href: "/compliance/ctr-review/flagged", icon: Flag },
           ],
         },
         ...(role === "head_of_compliance"
@@ -80,8 +80,10 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
               {
                 label: "Management",
                 items: [
-                  { title: "Team Workload", href: "/workload", icon: Users },
-                  { title: "Escalations", href: "/escalations", icon: TrendingUp, badge: 4, badgeVariant: "warning" as const },
+                  { title: "Team Workload", href: "/compliance/workload/dashboard", icon: Users },
+                  { title: "Pending Validations", href: "/compliance/validation/pending", icon: Inbox, badge: 3, badgeVariant: "warning" as const },
+                  { title: "Assign Validations", href: "/compliance/validation/assign", icon: UserPlus },
+                  { title: "Escalations", href: "/compliance/escalation/pending", icon: TrendingUp, badge: 4, badgeVariant: "warning" as const },
                 ],
               },
             ]
@@ -177,7 +179,18 @@ export function Sidebar() {
               )}
               <div className="space-y-1">
                 {section.items.map((item) => {
-                  const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + "/");
+                  // Check exact match first
+                  let isActive = location.pathname === item.href;
+                  
+                  // For parent routes, check if path starts with href + "/" 
+                  // but exclude routes that have their own nav items in the same section
+                  if (!isActive && location.pathname.startsWith(item.href + "/")) {
+                    // Get all hrefs from all sections to check if current path is a direct nav item
+                    const allNavHrefs = navigation.flatMap(section => section.items.map(i => i.href));
+                    // Only highlight parent if current path is not exactly another nav item
+                    isActive = !allNavHrefs.includes(location.pathname);
+                  }
+                  
                   const Icon = item.icon;
 
                   const navButton = (

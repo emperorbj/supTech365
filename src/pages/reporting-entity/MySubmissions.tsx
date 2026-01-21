@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CheckCircle2, XCircle, Clock, AlertCircle, Circle } from "lucide-react";
 
 interface Submission {
@@ -82,6 +83,316 @@ const sampleSubmissions: Submission[] = [
     currentStage: "See details for reason",
     submissionMethod: "excel",
   },
+  {
+    id: "6",
+    referenceNumber: "FIA-2026-0229",
+    reportType: "CTR",
+    submittedDate: "Jan 18, 2026",
+    submittedTime: "10:30",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "api",
+  },
+  {
+    id: "7",
+    referenceNumber: "FIA-2026-0228",
+    reportType: "STR",
+    submittedDate: "Jan 17, 2026",
+    submittedTime: "15:20",
+    status: "returned",
+    currentStage: "Correction Required",
+    submissionMethod: "excel",
+  },
+  {
+    id: "8",
+    referenceNumber: "FIA-2026-0227",
+    reportType: "CTR",
+    submittedDate: "Jan 17, 2026",
+    submittedTime: "09:45",
+    status: "validated",
+    currentStage: "Under Analysis",
+    submissionMethod: "api",
+  },
+  {
+    id: "9",
+    referenceNumber: "FIA-2026-0226",
+    reportType: "STR",
+    submittedDate: "Jan 16, 2026",
+    submittedTime: "13:15",
+    status: "submitted",
+    currentStage: "Awaiting Validation",
+    submissionMethod: "excel",
+  },
+  {
+    id: "10",
+    referenceNumber: "FIA-2026-0225",
+    reportType: "CTR",
+    submittedDate: "Jan 16, 2026",
+    submittedTime: "08:00",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "api",
+  },
+  {
+    id: "11",
+    referenceNumber: "FIA-2026-0224",
+    reportType: "STR",
+    submittedDate: "Jan 15, 2026",
+    submittedTime: "16:30",
+    status: "under_review",
+    currentStage: "Under Review",
+    submissionMethod: "excel",
+  },
+  {
+    id: "12",
+    referenceNumber: "FIA-2026-0223",
+    reportType: "CTR",
+    submittedDate: "Jan 15, 2026",
+    submittedTime: "11:20",
+    status: "validated",
+    currentStage: "Under Analysis",
+    submissionMethod: "api",
+  },
+  {
+    id: "13",
+    referenceNumber: "FIA-2026-0222",
+    reportType: "STR",
+    submittedDate: "Jan 14, 2026",
+    submittedTime: "14:45",
+    status: "submitted",
+    currentStage: "Awaiting Validation",
+    submissionMethod: "excel",
+  },
+  {
+    id: "14",
+    referenceNumber: "FIA-2026-0221",
+    reportType: "CTR",
+    submittedDate: "Jan 14, 2026",
+    submittedTime: "10:15",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "api",
+  },
+  {
+    id: "15",
+    referenceNumber: "FIA-2026-0220",
+    reportType: "STR",
+    submittedDate: "Jan 13, 2026",
+    submittedTime: "15:30",
+    status: "under_analysis",
+    currentStage: "Under Analysis",
+    submissionMethod: "excel",
+  },
+  {
+    id: "16",
+    referenceNumber: "FIA-2026-0219",
+    reportType: "CTR",
+    submittedDate: "Jan 13, 2026",
+    submittedTime: "09:00",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "api",
+  },
+  {
+    id: "17",
+    referenceNumber: "FIA-2026-0218",
+    reportType: "STR",
+    submittedDate: "Jan 12, 2026",
+    submittedTime: "13:20",
+    status: "rejected",
+    currentStage: "See details for reason",
+    submissionMethod: "excel",
+  },
+  {
+    id: "18",
+    referenceNumber: "FIA-2026-0217",
+    reportType: "CTR",
+    submittedDate: "Jan 12, 2026",
+    submittedTime: "08:45",
+    status: "validated",
+    currentStage: "Under Analysis",
+    submissionMethod: "api",
+  },
+  {
+    id: "19",
+    referenceNumber: "FIA-2026-0216",
+    reportType: "STR",
+    submittedDate: "Jan 11, 2026",
+    submittedTime: "16:10",
+    status: "submitted",
+    currentStage: "Awaiting Validation",
+    submissionMethod: "excel",
+  },
+  {
+    id: "20",
+    referenceNumber: "FIA-2026-0215",
+    reportType: "CTR",
+    submittedDate: "Jan 11, 2026",
+    submittedTime: "10:30",
+    status: "under_compliance_review",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "api",
+  },
+  {
+    id: "21",
+    referenceNumber: "FIA-2026-0214",
+    reportType: "STR",
+    submittedDate: "Jan 10, 2026",
+    submittedTime: "14:00",
+    status: "validated",
+    currentStage: "Under Analysis",
+    submissionMethod: "excel",
+  },
+  {
+    id: "22",
+    referenceNumber: "FIA-2026-0213",
+    reportType: "CTR",
+    submittedDate: "Jan 10, 2026",
+    submittedTime: "09:20",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "api",
+  },
+  {
+    id: "23",
+    referenceNumber: "FIA-2026-0212",
+    reportType: "STR",
+    submittedDate: "Jan 9, 2026",
+    submittedTime: "15:45",
+    status: "returned",
+    currentStage: "Correction Required",
+    submissionMethod: "excel",
+  },
+  {
+    id: "24",
+    referenceNumber: "FIA-2026-0211",
+    reportType: "CTR",
+    submittedDate: "Jan 9, 2026",
+    submittedTime: "11:10",
+    status: "validated",
+    currentStage: "Under Analysis",
+    submissionMethod: "api",
+  },
+  {
+    id: "25",
+    referenceNumber: "FIA-2026-0210",
+    reportType: "STR",
+    submittedDate: "Jan 8, 2026",
+    submittedTime: "13:30",
+    status: "submitted",
+    currentStage: "Awaiting Validation",
+    submissionMethod: "excel",
+  },
+  {
+    id: "26",
+    referenceNumber: "FIA-2026-0209",
+    reportType: "CTR",
+    submittedDate: "Jan 8, 2026",
+    submittedTime: "08:15",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "api",
+  },
+  {
+    id: "27",
+    referenceNumber: "FIA-2026-0208",
+    reportType: "STR",
+    submittedDate: "Jan 7, 2026",
+    submittedTime: "16:20",
+    status: "under_review",
+    currentStage: "Under Review",
+    submissionMethod: "excel",
+  },
+  {
+    id: "28",
+    referenceNumber: "FIA-2026-0207",
+    reportType: "CTR",
+    submittedDate: "Jan 7, 2026",
+    submittedTime: "10:45",
+    status: "validated",
+    currentStage: "Under Analysis",
+    submissionMethod: "api",
+  },
+  {
+    id: "29",
+    referenceNumber: "FIA-2026-0206",
+    reportType: "STR",
+    submittedDate: "Jan 6, 2026",
+    submittedTime: "14:15",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "excel",
+  },
+  {
+    id: "30",
+    referenceNumber: "FIA-2026-0205",
+    reportType: "CTR",
+    submittedDate: "Jan 6, 2026",
+    submittedTime: "09:30",
+    status: "rejected",
+    currentStage: "See details for reason",
+    submissionMethod: "api",
+  },
+  {
+    id: "31",
+    referenceNumber: "FIA-2026-0204",
+    reportType: "STR",
+    submittedDate: "Jan 5, 2026",
+    submittedTime: "15:00",
+    status: "validated",
+    currentStage: "Under Analysis",
+    submissionMethod: "excel",
+  },
+  {
+    id: "32",
+    referenceNumber: "FIA-2026-0203",
+    reportType: "CTR",
+    submittedDate: "Jan 5, 2026",
+    submittedTime: "11:20",
+    status: "submitted",
+    currentStage: "Awaiting Validation",
+    submissionMethod: "api",
+  },
+  {
+    id: "33",
+    referenceNumber: "FIA-2026-0202",
+    reportType: "STR",
+    submittedDate: "Jan 4, 2026",
+    submittedTime: "13:45",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "excel",
+  },
+  {
+    id: "34",
+    referenceNumber: "FIA-2026-0201",
+    reportType: "CTR",
+    submittedDate: "Jan 4, 2026",
+    submittedTime: "08:00",
+    status: "returned",
+    currentStage: "Correction Required",
+    submissionMethod: "api",
+  },
+  {
+    id: "35",
+    referenceNumber: "FIA-2026-0200",
+    reportType: "STR",
+    submittedDate: "Jan 3, 2026",
+    submittedTime: "16:30",
+    status: "validated",
+    currentStage: "Under Analysis",
+    submissionMethod: "excel",
+  },
+  {
+    id: "36",
+    referenceNumber: "FIA-2025-0199",
+    reportType: "CTR",
+    submittedDate: "Dec 31, 2025",
+    submittedTime: "10:15",
+    status: "validated",
+    currentStage: "Under Compliance Review",
+    submissionMethod: "api",
+  },
 ];
 
 const getStatusIcon = (status: Submission["status"]) => {
@@ -99,7 +410,30 @@ const getStatusIcon = (status: Submission["status"]) => {
   }
 };
 
+// Shortened labels for display
 const getStatusLabel = (status: Submission["status"]) => {
+  switch (status) {
+    case "submitted":
+      return "Submitted";
+    case "validated":
+      return "Validated";
+    case "rejected":
+      return "Rejected";
+    case "returned":
+      return "Returned";
+    case "under_review":
+      return "Review";
+    case "under_compliance_review":
+      return "Compliance";
+    case "under_analysis":
+      return "Analysis";
+    default:
+      return status;
+  }
+};
+
+// Full descriptions for tooltips
+const getStatusTooltip = (status: Submission["status"]) => {
   switch (status) {
     case "submitted":
       return "Submitted";
@@ -118,6 +452,21 @@ const getStatusLabel = (status: Submission["status"]) => {
     default:
       return status;
   }
+};
+
+// Helper to shorten currentStage labels
+const shortenStageLabel = (stage?: string) => {
+  if (!stage) return "";
+  if (stage === "Under Compliance Review") return "Compliance";
+  if (stage === "Under Analysis") return "Analysis";
+  if (stage === "Awaiting Validation") return "Awaiting";
+  if (stage === "Under Review") return "Review";
+  return stage;
+};
+
+// Get full stage description for tooltip
+const getStageTooltip = (stage?: string) => {
+  return stage || "";
 };
 
 export default function MySubmissions() {
@@ -186,7 +535,7 @@ export default function MySubmissions() {
                     <SelectItem value="validated">Validated</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
                     <SelectItem value="returned">Returned for Correction</SelectItem>
-                    <SelectItem value="under_review">Under Review</SelectItem>
+                    <SelectItem value="under_review">Review</SelectItem>
                     <SelectItem value="under_compliance_review">Under Compliance Review</SelectItem>
                     <SelectItem value="under_analysis">Under Analysis</SelectItem>
                   </SelectContent>
@@ -287,9 +636,43 @@ export default function MySubmissions() {
                       <div className="flex items-center gap-2">
                         {getStatusIcon(submission.status)}
                         <div>
-                          <div className="font-medium">{getStatusLabel(submission.status)}</div>
+                          {getStatusTooltip(submission.status) !== getStatusLabel(submission.status) ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="font-medium cursor-help">
+                                    {getStatusLabel(submission.status)}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{getStatusTooltip(submission.status)}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <div className="font-medium">
+                              {getStatusLabel(submission.status)}
+                            </div>
+                          )}
                           {submission.currentStage && (
-                            <div className="text-xs text-muted-foreground">{submission.currentStage}</div>
+                            getStageTooltip(submission.currentStage) !== shortenStageLabel(submission.currentStage) ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="text-xs text-muted-foreground cursor-help">
+                                      {shortenStageLabel(submission.currentStage)}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{getStageTooltip(submission.currentStage)}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <div className="text-xs text-muted-foreground">
+                                {shortenStageLabel(submission.currentStage)}
+                              </div>
+                            )
                           )}
                         </div>
                       </div>

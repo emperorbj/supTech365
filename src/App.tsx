@@ -8,7 +8,30 @@ import { SidebarProvider } from "@/contexts/SidebarContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ValidationQueue from "./pages/compliance/ValidationQueue";
+import ValidationDetail from "./pages/compliance/ValidationDetail";
+import AllValidations from "./pages/compliance/AllValidations";
+import PendingValidations from "./pages/compliance/PendingValidations";
+import AssignValidations from "./pages/compliance/AssignValidations";
 import CTRReview from "./pages/compliance/CTRReview";
+import CTRReviewDetail from "./pages/compliance/CTRReviewDetail";
+import OverdueCTRs from "./pages/compliance/OverdueCTRs";
+import AllCTRs from "./pages/compliance/AllCTRs";
+import CTRPendingReview from "./pages/compliance/CTRPendingReview";
+import CTRFlaggedForEscalation from "./pages/compliance/CTRFlaggedForEscalation";
+import CTREscalated from "./pages/compliance/CTREscalated";
+import CTRArchived from "./pages/compliance/CTRArchived";
+import CTRUnderMonitoring from "./pages/compliance/CTRUnderMonitoring";
+import EscalationQueue from "./pages/compliance/EscalationQueue";
+import EscalationApprovalDetail from "./pages/compliance/EscalationApprovalDetail";
+import WorkloadManagement from "./pages/compliance/WorkloadManagement";
+import AssignCTRs from "./pages/compliance/AssignCTRs";
+import ComplianceAlerts from "./pages/compliance/ComplianceAlerts";
+import AlertRuleType from "./pages/compliance/AlertRuleType";
+import AlertPerformanceMetrics from "./pages/compliance/AlertPerformanceMetrics";
+import ProcessingMetrics from "./pages/compliance/ProcessingMetrics";
+import EscalationRateTrends from "./pages/compliance/EscalationRateTrends";
+import ValidationQualityMetrics from "./pages/compliance/ValidationQualityMetrics";
+import EntityPerformance from "./pages/compliance/EntityPerformance";
 import AnalysisQueue from "./pages/analysis/AnalysisQueue";
 import SubmitReport from "./pages/reporting-entity/SubmitReport";
 import MySubmissions from "./pages/reporting-entity/MySubmissions";
@@ -35,8 +58,57 @@ const App = () => (
               <Route path="/resubmissions" element={<Resubmissions />} />
               <Route path="/statistics" element={<Statistics />} />
               {/* Compliance Workspace Routes (f2.md Section 2.2) */}
-              <Route path="/validation" element={<ValidationQueue />} />
+              <Route path="/compliance/validation" element={<ValidationQueue />} />
+              <Route path="/compliance/validation/pending" element={<PendingValidations />} />
+              <Route path="/compliance/validation/assign" element={<AssignValidations />} />
+              <Route path="/compliance/validation/all" element={<AllValidations />} />
+              <Route path="/compliance/validation/:reportId/validate" element={<ValidationDetail />} />
+              <Route path="/compliance/ctr-review" element={<CTRReview />} />
+              <Route path="/compliance/ctr-review/all" element={<AllCTRs />} />
+              <Route path="/compliance/ctr-review/overdue" element={<OverdueCTRs />} />
+              <Route path="/compliance/ctr-review/pending" element={<CTRPendingReview />} />
+              <Route path="/compliance/ctr-review/flagged" element={<CTRFlaggedForEscalation />} />
+              <Route path="/compliance/ctr-review/escalated" element={<CTREscalated />} />
+              <Route path="/compliance/ctr-review/archived" element={<CTRArchived />} />
+              <Route path="/compliance/ctr-review/monitoring" element={<CTRUnderMonitoring />} />
+              <Route path="/compliance/ctr-review/:reportId/review" element={<CTRReviewDetail />} />
+              {/* Legacy routes for backward compatibility */}
               <Route path="/ctr-review" element={<CTRReview />} />
+              <Route path="/ctr-review/all" element={<AllCTRs />} />
+              <Route path="/ctr-review/overdue" element={<OverdueCTRs />} />
+              <Route path="/ctr-review/pending" element={<CTRPendingReview />} />
+              <Route path="/ctr-review/flagged" element={<CTRFlaggedForEscalation />} />
+              <Route path="/ctr-review/escalated" element={<CTREscalated />} />
+              <Route path="/ctr-review/archived" element={<CTRArchived />} />
+              <Route path="/ctr-review/monitoring" element={<CTRUnderMonitoring />} />
+              <Route path="/ctr-review/:id/review" element={<CTRReviewDetail />} />
+              <Route path="/compliance/escalation/pending" element={<EscalationQueue defaultTab="pending" />} />
+              <Route path="/compliance/escalation/approved" element={<EscalationQueue defaultTab="approved" />} />
+              <Route path="/compliance/escalation/rejected" element={<EscalationQueue defaultTab="rejected" />} />
+              <Route path="/compliance/escalation/:reportId/escalate" element={<EscalationApprovalDetail />} />
+              <Route path="/compliance/workload/dashboard" element={<WorkloadManagement />} />
+              <Route path="/compliance/workload/assign" element={<AssignCTRs />} />
+              {/* Legacy route */}
+              <Route path="/compliance/workload" element={<WorkloadManagement />} />
+              <Route path="/compliance/alerts/active" element={<ComplianceAlerts />} />
+              <Route path="/compliance/alerts/performance" element={<AlertPerformanceMetrics />} />
+              <Route path="/compliance/dashboards/processing" element={<ProcessingMetrics />} />
+              <Route path="/compliance/dashboards/escalation" element={<EscalationRateTrends />} />
+              <Route path="/compliance/dashboards/quality" element={<ValidationQualityMetrics />} />
+              {/* Legacy routes for backward compatibility */}
+              <Route path="/validation" element={<ValidationQueue />} />
+              <Route path="/validation/all" element={<AllValidations />} />
+              <Route path="/validation/:id/validate" element={<ValidationDetail />} />
+              <Route path="/escalation" element={<EscalationQueue />} />
+              <Route path="/escalation/:id/review" element={<EscalationApprovalDetail />} />
+              <Route path="/workload" element={<WorkloadManagement />} />
+              <Route path="/workload/assign" element={<AssignCTRs />} />
+              <Route path="/compliance-alerts" element={<ComplianceAlerts />} />
+              <Route path="/compliance-alerts/performance" element={<AlertPerformanceMetrics />} />
+              <Route path="/processing-metrics" element={<ProcessingMetrics />} />
+              <Route path="/processing-metrics/escalation-trends" element={<EscalationRateTrends />} />
+              <Route path="/processing-metrics/validation-quality" element={<ValidationQualityMetrics />} />
+              <Route path="/processing-metrics/entity-performance" element={<EntityPerformance />} />
               {/* Analysis Workspace Routes (f2.md Section 2.3) */}
               <Route path="/analysis-queue" element={<AnalysisQueue />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

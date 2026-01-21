@@ -59,7 +59,7 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Workflow States
+        // Workflow States (f1.md)
         workflow: {
           submitted: "hsl(var(--submitted))",
           validated: "hsl(var(--validated))",
@@ -68,18 +68,32 @@ export default {
           returned: "hsl(var(--returned))",
           archived: "hsl(var(--archived))",
         },
-        // Risk Levels
+        // Status Colors (f1.md)
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
+        error: "hsl(var(--error))",
+        info: "hsl(var(--info))",
+        // Risk Levels (f1.md)
         risk: {
           critical: "hsl(var(--risk-critical))",
           high: "hsl(var(--risk-high))",
           medium: "hsl(var(--risk-medium))",
           low: "hsl(var(--risk-low))",
         },
-        // Report Types
+        // Report Types (f1.md)
         report: {
           ctr: "hsl(var(--report-ctr))",
           str: "hsl(var(--report-str))",
           escalated: "hsl(var(--report-escalated))",
+        },
+        // Neutrals (f1.md)
+        gray: {
+          50: "hsl(var(--gray-50))",
+          100: "hsl(var(--gray-100))",
+          200: "hsl(var(--gray-200))",
+          300: "hsl(var(--gray-300))",
+          600: "hsl(var(--gray-600))",
+          900: "hsl(var(--gray-900))",
         },
         chart: {
           "1": "hsl(var(--chart-1))",

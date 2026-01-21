@@ -6,63 +6,77 @@
 
 @layer base {
   :root {
-    /* Primary - Authority Navy */
-    --primary: 222 47% 20%;
-    --primary-foreground: 210 40% 98%;
-    --primary-light: 217 91% 60%;
-    --primary-dark: 222 47% 11%;
+    /* Primary Palette - Authority & Trust (f1.md Section 1) */
+    --primary: 222 47% 20%; /* #1E3A8A Navy */
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 217 91% 60%; /* #3B82F6 */
+    --primary-dark: 222 47% 11%; /* #1E293B */
+    
+    /* Neutrals (f1.md Section 1) */
+    --gray-50: 210 40% 98%; /* #F8FAFC */
+    --gray-100: 210 40% 96%; /* #F1F5F9 */
+    --gray-200: 214 32% 91%; /* #E2E8F0 */
+    --gray-300: 213 27% 84%; /* #CBD5E1 */
+    --gray-600: 215 16% 47%; /* #475569 */
+    --gray-900: 222 47% 11%; /* #0F172A */
     
     /* Background & Surfaces */
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    --background: 210 40% 98%; /* Gray-50 */
+    --foreground: 222 47% 11%; /* Gray-900 */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
     
     /* Secondary & Muted */
-    --secondary: 210 40% 96%;
+    --secondary: 210 40% 96%; /* Gray-100 */
     --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 217 91% 60%;
+    --muted: 210 40% 96%; /* Gray-100 */
+    --muted-foreground: 215 16% 47%; /* Gray-600 */
+    --accent: 217 91% 60%; /* Primary Light */
     --accent-foreground: 0 0% 100%;
     
-    /* Semantic - Workflow States */
-    --submitted: 239 84% 67%;
-    --validated: 160 84% 39%;
-    --under-review: 38 92% 50%;
-    --rejected: 0 84% 60%;
-    --returned: 330 81% 60%;
-    --archived: 215 16% 47%;
+    /* Semantic - Workflow States (f1.md Section 1) */
+    --submitted: 239 84% 67%; /* #6366F1 Indigo */
+    --validated: 160 84% 39%; /* #10B981 Green */
+    --under-review: 38 92% 50%; /* #F59E0B Amber */
+    --rejected: 0 84% 60%; /* #EF4444 Red */
+    --returned: 330 81% 60%; /* #EC4899 Pink */
+    --archived: 215 16% 47%; /* Gray-600 */
     
-    /* Alert Risk Levels */
-    --risk-critical: 0 72% 51%;
-    --risk-high: 25 95% 53%;
-    --risk-medium: 45 93% 47%;
-    --risk-low: 215 16% 63%;
+    /* Status Colors (f1.md Section 1) */
+    --success: 160 84% 39%; /* #10B981 Green */
+    --warning: 38 92% 50%; /* #F59E0B Amber */
+    --error: 0 84% 60%; /* #EF4444 Red */
+    --info: 217 91% 60%; /* #3B82F6 Blue */
     
-    /* Report Types */
-    --report-ctr: 263 70% 58%;
-    --report-str: 187 96% 42%;
-    --report-escalated: 347 77% 60%;
+    /* Alert Risk Levels (f1.md Section 1) */
+    --risk-critical: 0 72% 51%; /* #DC2626 Dark Red */
+    --risk-high: 25 95% 53%; /* #F97316 Orange */
+    --risk-medium: 45 93% 47%; /* #FBBF24 Yellow */
+    --risk-low: 215 16% 63%; /* #94A3B8 Slate */
+    
+    /* Report Types (f1.md Section 1) */
+    --report-ctr: 263 70% 58%; /* #8B5CF6 Purple */
+    --report-str: 187 96% 42%; /* #06B6D4 Cyan */
+    --report-escalated: 347 77% 60%; /* #F43F5E Rose */
     
     /* UI Elements */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 222 47% 20%;
-    --radius: 0.5rem;
+    --destructive: 0 84% 60%; /* Error Red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%; /* Gray-200 */
+    --input: 214 32% 91%; /* Gray-200 */
+    --ring: 222 47% 20%; /* Primary */
+    --radius: 0.375rem; /* 6px per f1.md */
     
-    /* Sidebar */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 217 91% 60%;
+    /* Sidebar (f2.md Section 3.3) */
+    --sidebar-background: 222 47% 11%; /* Primary Dark */
+    --sidebar-foreground: 210 40% 96%; /* White */
+    --sidebar-primary: 217 91% 60%; /* Primary Light */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 20%;
+    --sidebar-accent: 222 47% 20%; /* Primary */
     --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 222 47% 20%;
+    --sidebar-border: 214 32% 91%; /* Gray-200 */
     --sidebar-ring: 217 91% 60%;
     
     /* Chart colors */
@@ -114,21 +128,52 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   
-  /* Typography */
+  /* Typography (f1.md Section 2) */
   h1 {
-    @apply text-[30px] leading-[38px] font-bold tracking-tight;
+    @apply text-[30px] leading-[38px] font-bold; /* Page titles */
   }
   
   h2 {
-    @apply text-2xl leading-8 font-semibold;
+    @apply text-2xl leading-8 font-semibold; /* Section headers */
   }
   
   h3 {
-    @apply text-xl leading-7 font-semibold;
+    @apply text-xl leading-7 font-semibold; /* Subsections */
   }
   
   h4 {
-    @apply text-lg leading-[26px] font-semibold;
+    @apply text-lg leading-[26px] font-semibold; /* Card headers */
+  }
+  
+  /* Body text */
+  body {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+  
+  .text-body-large {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+  
+  .text-body-small {
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 400;
+  }
+  
+  .text-label {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+  
+  .text-caption {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
   }
 }
 
@@ -194,10 +239,11 @@
     @apply absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-[11px] font-bold bg-destructive text-destructive-foreground rounded-full flex items-center justify-center border-2 border-background;
   }
   
-  /* Sidebar Navigation */
+  /* Sidebar Navigation (f2.md Section 3.3) */
   .nav-item {
     @apply flex items-center gap-3 px-4 py-2.5 mx-2 rounded-md text-sm transition-all duration-150;
     @apply text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground;
+    min-height: 40px;
   }
   
   .nav-item-active {
@@ -206,6 +252,29 @@
   
   .nav-section-label {
     @apply px-4 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50;
+    letter-spacing: 0.5px;
+    line-height: 16px;
+  }
+  
+  /* Badge on nav items (f2.md Section 3.3) */
+  .nav-badge {
+    @apply ml-auto min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold text-center;
+  }
+  
+  .nav-badge-info {
+    @apply bg-primary-light text-white;
+  }
+  
+  .nav-badge-warning {
+    @apply bg-warning text-white;
+  }
+  
+  .nav-badge-critical {
+    @apply bg-risk-critical text-white;
+  }
+  
+  .nav-badge-active {
+    @apply bg-white/20 text-sidebar-primary-foreground;
   }
   
   /* KPI Cards */

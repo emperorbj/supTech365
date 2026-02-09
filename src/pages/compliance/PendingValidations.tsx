@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { FileCheck, RefreshCw, UserPlus } from "lucide-react";
+import { FileCheck, RefreshCw, UserPlus, AlertTriangle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -164,8 +164,8 @@ export default function PendingValidations() {
                     <TableCell>{v.entityName}</TableCell>
                     <TableCell>{v.transactionCount}</TableCell>
                     <TableCell className="text-muted-foreground">{v.submittedDate}</TableCell>
-                    <TableCell className={v.overdue ? "text-destructive font-medium" : ""}>
-                      {v.age}{v.overdue ? " ⚠" : ""}
+                    <TableCell className={`inline-flex items-center gap-1 ${v.overdue ? "text-destructive font-medium" : ""}`}>
+                      {v.age}{v.overdue ? <AlertTriangle className="h-4 w-4 shrink-0" /> : ""}
                     </TableCell>
                   </TableRow>
                 ))}

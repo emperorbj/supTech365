@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { RotateCcw, Eye, AlertCircle, Download, Calendar, Clock } from "lucide-react";
+import { RotateCcw, Eye, AlertCircle, Download, Calendar, Clock, Info } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -197,10 +197,10 @@ export default function Resubmissions() {
         </div>
 
         {/* Info Alert */}
-        <Alert className="bg-blue-50 border-blue-200">
-          <AlertCircle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-900">
-            <strong>ℹ️ Reports Requiring Correction</strong>
+        <Alert className="bg-muted/60 border-border">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertDescription>
+            <strong className="flex items-center gap-1.5">Reports Requiring Correction</strong>
             <p className="mt-1">
               These reports were returned by FIA and require corrections before they can be processed.
             </p>
@@ -310,9 +310,10 @@ export default function Resubmissions() {
           ))}
         </div>
 
-        <Alert className="bg-blue-50 border-blue-200">
-          <AlertDescription className="text-blue-900 text-sm">
-            ℹ️ All resubmissions should be completed within 5 business days of receiving the return notification.
+        <Alert className="bg-muted/60 border-border">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-sm">
+            All resubmissions should be completed within 5 business days of receiving the return notification.
           </AlertDescription>
         </Alert>
 
@@ -382,9 +383,10 @@ export default function Resubmissions() {
                     )}
                   </div>
 
-                  <Alert className="bg-blue-50 border-blue-200">
+                  <Alert className="bg-muted/60 border-border">
+                    <Info className="h-4 w-4 text-primary" />
                     <AlertDescription className="text-sm">
-                      ℹ️ Important:
+                      Important:
                       <ul className="list-disc list-inside mt-1 space-y-1">
                         <li>This will be recorded as Resubmission #1</li>
                         <li>Your corrections will be verified during validation</li>

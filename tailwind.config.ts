@@ -104,13 +104,18 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "var(--radius-lg)",
+        md: "var(--radius)",
+        sm: "calc(var(--radius) - 2px)",
+        xl: "var(--radius-xl)",
       },
       fontFamily: {
-        sans: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
-        mono: ["SF Mono", "Monaco", "Cascadia Code", "Courier New", "monospace"],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        mono: ["ui-monospace", "SF Mono", "Monaco", "Cascadia Code", "monospace"],
+      },
+      boxShadow: {
+        "soft": "0 2px 8px -2px rgb(0 0 0 / 0.06), 0 4px 12px -4px rgb(0 0 0 / 0.04)",
+        "soft-lg": "0 4px 16px -4px rgb(0 0 0 / 0.08), 0 8px 24px -8px rgb(0 0 0 / 0.06)",
       },
       spacing: {
         "18": "4.5rem",

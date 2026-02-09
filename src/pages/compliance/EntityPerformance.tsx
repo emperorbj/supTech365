@@ -166,7 +166,7 @@ export default function EntityPerformance() {
                 <span>Bank of Monrovia</span>
                 <span className="font-medium">45 submissions</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-blue-600 h-4 rounded-full" style={{ width: "100%" }}></div>
               </div>
             </div>
@@ -175,7 +175,7 @@ export default function EntityPerformance() {
                 <span>First Intl Bank</span>
                 <span className="font-medium">38 submissions</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-blue-600 h-4 rounded-full" style={{ width: "84%" }}></div>
               </div>
             </div>
@@ -192,7 +192,7 @@ export default function EntityPerformance() {
                 <span>Bank of Monrovia</span>
                 <span className="font-medium">11% (5/45)</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-orange-600 h-4 rounded-full" style={{ width: "55%" }}></div>
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function EntityPerformance() {
                 <span>First Intl Bank</span>
                 <span className="font-medium">5% (2/38)</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-orange-600 h-4 rounded-full" style={{ width: "25%" }}></div>
               </div>
             </div>

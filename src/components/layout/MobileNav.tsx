@@ -39,32 +39,30 @@ export function MobileNav() {
       {/* Slide-out Panel (f2.md Section 5.1) */}
       <aside
         className={cn(
-          "fixed left-0 top-0 bottom-0 w-[280px] max-w-[80%] bg-white z-[200] shadow-lg transition-transform duration-250",
+          "fixed left-0 top-0 bottom-0 w-[280px] max-w-[80%] bg-card border-r border-border z-[200] shadow-soft-lg transition-transform duration-250",
           isMobileNavOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex h-full flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <span className="text-lg font-bold text-white">FIA</span>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-sm">
+                <span className="text-lg font-bold text-primary-foreground">FIA</span>
               </div>
-              <span className="text-lg font-semibold text-gray-900">SupTech365</span>
+              <span className="text-lg font-semibold text-foreground">SupTech365</span>
             </div>
             <button
               onClick={() => setIsMobileNavOpen(false)}
-              className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-gray-100"
+              className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-muted"
             >
-              <X className="h-6 w-6 text-gray-900" />
+              <X className="h-5 w-5 text-foreground" />
             </button>
           </div>
 
-          {/* Navigation Sections */}
           <nav className="flex-1 overflow-y-auto py-4 px-4">
             {navigation.map((section, sectionIndex) => (
               <div key={section.label} className={cn(sectionIndex > 0 && "mt-6")}>
-                <div className="px-2 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <div className="px-2 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {section.label}
                 </div>
                 <div className="space-y-1 mt-2">
@@ -78,10 +76,10 @@ export function MobileNav() {
                         to={item.href}
                         onClick={() => setIsMobileNavOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-150 min-h-[44px]",
+                          "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 min-h-[44px]",
                           isActive
-                            ? "bg-primary-light text-white font-medium"
-                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                         )}
                       >
                         <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
@@ -93,8 +91,8 @@ export function MobileNav() {
                               item.badgeVariant === "critical" && "bg-risk-critical text-white",
                               item.badgeVariant === "warning" && "bg-warning text-white",
                               (!item.badgeVariant || item.badgeVariant === "info") &&
-                                "bg-primary-light text-white",
-                              isActive && "bg-white/20 text-white"
+                                "bg-primary text-primary-foreground",
+                              isActive && "bg-primary-foreground/20 text-primary-foreground"
                             )}
                           >
                             {item.badge > 99 ? "99+" : item.badge}
@@ -108,12 +106,11 @@ export function MobileNav() {
             ))}
           </nav>
 
-          {/* Footer */}
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-border p-4">
             <Link
               to="/help"
               onClick={() => setIsMobileNavOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-150 min-h-[44px]"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-150 min-h-[44px]"
             >
               <span>Help & Support</span>
             </Link>

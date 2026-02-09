@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { FileCheck, CheckCircle2 } from "lucide-react";
+import { FileCheck, CheckCircle2, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -251,7 +251,7 @@ export default function ValidationDetail() {
                         onClick={() => openTxSheetFor(tx.id)}
                         aria-label="View transaction details"
                       >
-                        🔍
+                        <Search className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

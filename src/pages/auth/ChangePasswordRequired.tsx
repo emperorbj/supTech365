@@ -14,18 +14,7 @@ export default function ChangePasswordRequired() {
   }, [isAuthenticated, user, navigate]);
 
   const handleSuccess = () => {
-    // Redirect to role-based landing page
-    const roleRoutes: Record<string, string> = {
-      reporting_entity: "/reporting-entity/submissions",
-      compliance_officer: "/compliance/validation/assigned",
-      head_of_compliance: "/compliance/dashboards",
-      analyst: "/analysis/queue/assigned",
-      head_of_analysis: "/analysis/dashboards",
-      director_ops: "/audit/dashboards/director-ops",
-      oic: "/audit/dashboards/oic",
-      tech_admin: "/admin/users",
-    };
-    navigate(roleRoutes[user?.role || ""] || "/");
+    navigate("/");
   };
 
   return (

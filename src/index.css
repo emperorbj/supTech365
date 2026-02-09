@@ -2,85 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-/* FIA SupTech365 Design System */
+/* SupTech365 — Modern premium design system */
 
 @layer base {
   :root {
-    /* Primary Palette - Authority & Trust (f1.md Section 1) */
-    --primary: 222 47% 20%; /* #1E3A8A Navy */
+    /* Primary — refined indigo (premium, trustworthy) */
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 217 91% 60%; /* #3B82F6 */
-    --primary-dark: 222 47% 11%; /* #1E293B */
-    
-    /* Neutrals (f1.md Section 1) */
-    --gray-50: 210 40% 98%; /* #F8FAFC */
-    --gray-100: 210 40% 96%; /* #F1F5F9 */
-    --gray-200: 214 32% 91%; /* #E2E8F0 */
-    --gray-300: 213 27% 84%; /* #CBD5E1 */
-    --gray-600: 215 16% 47%; /* #475569 */
-    --gray-900: 222 47% 11%; /* #0F172A */
-    
-    /* Background & Surfaces */
-    --background: 210 40% 98%; /* Gray-50 */
-    --foreground: 222 47% 11%; /* Gray-900 */
+    --primary-light: 239 84% 75%;
+    --primary-dark: 239 84% 45%;
+
+    /* Neutrals — slate (cool, modern) */
+    --gray-50: 210 40% 98%;
+    --gray-100: 214 32% 91%;
+    --gray-200: 214 32% 88%;
+    --gray-300: 213 27% 84%;
+    --gray-600: 215 16% 47%;
+    --gray-900: 222 47% 11%;
+
+    /* Background & surfaces */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    
-    /* Secondary & Muted */
-    --secondary: 210 40% 96%; /* Gray-100 */
+
+    /* Secondary & muted */
+    --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%; /* Gray-100 */
-    --muted-foreground: 215 16% 47%; /* Gray-600 */
-    --accent: 217 91% 60%; /* Primary Light */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 239 84% 67%;
     --accent-foreground: 0 0% 100%;
-    
-    /* Semantic - Workflow States (f1.md Section 1) */
-    --submitted: 239 84% 67%; /* #6366F1 Indigo */
-    --validated: 160 84% 39%; /* #10B981 Green */
-    --under-review: 38 92% 50%; /* #F59E0B Amber */
-    --rejected: 0 84% 60%; /* #EF4444 Red */
-    --returned: 330 81% 60%; /* #EC4899 Pink */
-    --archived: 215 16% 47%; /* Gray-600 */
-    
-    /* Status Colors (f1.md Section 1) */
-    --success: 160 84% 39%; /* #10B981 Green */
-    --warning: 38 92% 50%; /* #F59E0B Amber */
-    --error: 0 84% 60%; /* #EF4444 Red */
-    --info: 217 91% 60%; /* #3B82F6 Blue */
-    
-    /* Alert Risk Levels (f1.md Section 1) */
-    --risk-critical: 0 72% 51%; /* #DC2626 Dark Red */
-    --risk-high: 25 95% 53%; /* #F97316 Orange */
-    --risk-medium: 45 93% 47%; /* #FBBF24 Yellow */
-    --risk-low: 215 16% 63%; /* #94A3B8 Slate */
-    
-    /* Report Types (f1.md Section 1) */
-    --report-ctr: 263 70% 58%; /* #8B5CF6 Purple */
-    --report-str: 187 96% 42%; /* #06B6D4 Cyan */
-    --report-escalated: 347 77% 60%; /* #F43F5E Rose */
-    
-    /* UI Elements */
-    --destructive: 0 84% 60%; /* Error Red */
+
+    /* Semantic — workflow & status */
+    --submitted: 239 84% 67%;
+    --validated: 160 84% 39%;
+    --under-review: 38 92% 50%;
+    --rejected: 0 84% 60%;
+    --returned: 330 81% 60%;
+    --archived: 215 16% 47%;
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --error: 0 84% 60%;
+    --info: 239 84% 67%;
+    --risk-critical: 0 72% 51%;
+    --risk-high: 25 95% 53%;
+    --risk-medium: 45 93% 47%;
+    --risk-low: 215 16% 63%;
+    --report-ctr: 263 70% 58%;
+    --report-str: 187 96% 42%;
+    --report-escalated: 347 77% 60%;
+
+    /* UI */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%; /* Gray-200 */
-    --input: 214 32% 91%; /* Gray-200 */
-    --ring: 222 47% 20%; /* Primary */
-    --radius: 0.375rem; /* 6px per f1.md */
-    
-    /* Sidebar (f2.md Section 3.3) */
-    --sidebar-background: 222 47% 11%; /* Primary Dark */
-    --sidebar-foreground: 210 40% 96%; /* White */
-    --sidebar-primary: 217 91% 60%; /* Primary Light */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 239 84% 67%;
+    --radius: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+
+    /* Sidebar — dark premium */
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 239 84% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 20%; /* Primary */
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 214 32% 91%; /* Gray-200 */
-    --sidebar-ring: 217 91% 60%;
-    
-    /* Chart colors */
-    --chart-1: 217 91% 60%;
+    --sidebar-accent: 222 47% 16%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 47% 14%;
+    --sidebar-ring: 239 84% 67%;
+
+    /* Chart */
+    --chart-1: 239 84% 67%;
     --chart-2: 160 84% 39%;
     --chart-3: 38 92% 50%;
     --chart-4: 263 70% 58%;
@@ -94,27 +90,27 @@
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
+    --primary: 239 84% 67%;
     --primary-foreground: 222 47% 11%;
     --secondary: 222 47% 15%;
     --secondary-foreground: 210 40% 98%;
     --muted: 222 47% 15%;
     --muted-foreground: 215 20% 65%;
-    --accent: 217 91% 60%;
+    --accent: 239 84% 67%;
     --accent-foreground: 222 47% 11%;
-    --destructive: 0 62% 30%;
+    --destructive: 0 62% 50%;
     --destructive-foreground: 210 40% 98%;
-    --border: 222 47% 20%;
-    --input: 222 47% 20%;
-    --ring: 217 91% 60%;
+    --border: 222 47% 18%;
+    --input: 222 47% 18%;
+    --ring: 239 84% 67%;
     --sidebar-background: 222 47% 6%;
     --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 239 84% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 11%;
+    --sidebar-accent: 222 47% 12%;
     --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 222 47% 15%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-border: 222 47% 14%;
+    --sidebar-ring: 239 84% 67%;
   }
 }
 
@@ -125,210 +121,114 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
-  
-  /* Typography (f1.md Section 2) */
+
   h1 {
-    @apply text-[30px] leading-[38px] font-bold; /* Page titles */
+    @apply text-[28px] leading-[36px] font-semibold tracking-tight;
   }
-  
+
   h2 {
-    @apply text-2xl leading-8 font-semibold; /* Section headers */
+    @apply text-xl leading-7 font-semibold tracking-tight;
   }
-  
+
   h3 {
-    @apply text-xl leading-7 font-semibold; /* Subsections */
+    @apply text-lg leading-6 font-semibold;
   }
-  
+
   h4 {
-    @apply text-lg leading-[26px] font-semibold; /* Card headers */
-  }
-  
-  /* Body text */
-  body {
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 400;
-  }
-  
-  .text-body-large {
-    font-size: 16px;
-    line-height: 24px;
-    font-weight: 400;
-  }
-  
-  .text-body-small {
-    font-size: 12px;
-    line-height: 18px;
-    font-weight: 400;
-  }
-  
-  .text-label {
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 500;
-  }
-  
-  .text-caption {
-    font-size: 12px;
-    line-height: 16px;
-    font-weight: 500;
+    @apply text-base leading-5 font-semibold;
   }
 }
 
 @layer components {
-  /* Reference Numbers - Monospace */
-  .font-mono-ref {
-    font-family: "SF Mono", Monaco, "Cascadia Code", "Courier New", monospace;
-  }
-  
-  /* Status Badges */
-  .badge-submitted {
-    @apply bg-[hsl(var(--submitted))] text-white;
-  }
-  
-  .badge-validated {
-    @apply bg-[hsl(var(--validated))] text-white;
-  }
-  
-  .badge-under-review {
-    @apply bg-[hsl(var(--under-review))] text-white;
-  }
-  
-  .badge-rejected {
-    @apply bg-[hsl(var(--rejected))] text-white;
-  }
-  
-  .badge-returned {
-    @apply bg-[hsl(var(--returned))] text-white;
-  }
-  
-  /* Report Type Badges */
-  .badge-ctr {
-    @apply bg-[hsl(var(--report-ctr))] text-white;
-  }
-  
-  .badge-str {
-    @apply bg-[hsl(var(--report-str))] text-white;
-  }
-  
-  .badge-escalated {
-    @apply bg-[hsl(var(--report-escalated))] text-white;
-  }
-  
-  /* Risk Level Badges */
-  .badge-risk-critical {
-    @apply bg-[hsl(var(--risk-critical))] text-white animate-pulse;
-  }
-  
-  .badge-risk-high {
-    @apply bg-[hsl(var(--risk-high))] text-white;
-  }
-  
-  .badge-risk-medium {
-    @apply bg-[hsl(var(--risk-medium))] text-foreground;
-  }
-  
-  .badge-risk-low {
-    @apply bg-[hsl(var(--risk-low))] text-white;
-  }
-  
-  /* Notification Badge */
-  .notification-badge {
-    @apply absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-[11px] font-bold bg-destructive text-destructive-foreground rounded-full flex items-center justify-center border-2 border-background;
-  }
-  
-  /* Sidebar Navigation (f2.md Section 3.3) */
   .nav-item {
-    @apply flex items-center gap-3 px-4 py-2.5 mx-2 rounded-md text-sm transition-all duration-150;
+    @apply flex items-center gap-3 px-3 py-2.5 mx-2 rounded-lg text-sm transition-all duration-200;
     @apply text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground;
     min-height: 40px;
   }
-  
+
   .nav-item-active {
-    @apply bg-sidebar-primary text-sidebar-primary-foreground font-medium;
+    @apply bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-sm;
   }
-  
+
   .nav-section-label {
-    @apply px-4 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50;
-    letter-spacing: 0.5px;
-    line-height: 16px;
+    @apply px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50;
+    letter-spacing: 0.05em;
   }
-  
-  /* Badge on nav items (f2.md Section 3.3) */
+
   .nav-badge {
     @apply ml-auto min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold text-center;
   }
-  
+
   .nav-badge-info {
-    @apply bg-primary-light text-white;
+    @apply bg-primary text-white;
   }
-  
+
   .nav-badge-warning {
-    @apply bg-warning text-white;
+    @apply bg-amber-500 text-white;
   }
-  
+
   .nav-badge-critical {
-    @apply bg-risk-critical text-white;
+    @apply bg-red-500 text-white;
   }
-  
+
   .nav-badge-active {
     @apply bg-white/20 text-sidebar-primary-foreground;
   }
-  
-  /* KPI Cards */
+
+  .badge-submitted { @apply bg-[hsl(var(--submitted))] text-white; }
+  .badge-validated { @apply bg-[hsl(var(--validated))] text-white; }
+  .badge-under-review { @apply bg-[hsl(var(--under-review))] text-white; }
+  .badge-rejected { @apply bg-[hsl(var(--rejected))] text-white; }
+  .badge-returned { @apply bg-[hsl(var(--returned))] text-white; }
+  .badge-ctr { @apply bg-[hsl(var(--report-ctr))] text-white; }
+  .badge-str { @apply bg-[hsl(var(--report-str))] text-white; }
+  .badge-escalated { @apply bg-[hsl(var(--report-escalated))] text-white; }
+  .badge-risk-critical { @apply bg-[hsl(var(--risk-critical))] text-white; }
+  .badge-risk-high { @apply bg-[hsl(var(--risk-high))] text-white; }
+  .badge-risk-medium { @apply bg-[hsl(var(--risk-medium))] text-foreground; }
+  .badge-risk-low { @apply bg-[hsl(var(--risk-low))] text-white; }
+
+  .notification-badge {
+    @apply absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full flex items-center justify-center border-2 border-background;
+  }
+
   .kpi-card {
-    @apply relative overflow-hidden rounded-lg border bg-card p-6 shadow-sm transition-all hover:shadow-md;
+    @apply relative overflow-hidden rounded-xl border border-border/60 bg-card p-6 shadow-sm transition-shadow hover:shadow-md;
   }
-  
+
   .kpi-card-icon {
-    @apply absolute top-4 right-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary;
+    @apply absolute top-4 right-4 h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary;
   }
-  
-  /* Data Table */
+
   .data-table-header {
-    @apply bg-muted font-semibold text-sm;
+    @apply bg-muted/80 font-medium text-sm;
   }
-  
+
   .data-table-row {
-    @apply border-b transition-colors hover:bg-muted/50;
+    @apply border-b border-border/60 transition-colors hover:bg-muted/40;
   }
-  
+
   .data-table-row-selected {
     @apply bg-primary/5;
   }
 }
 
 @layer utilities {
-  /* Animations */
   .animate-fade-in {
-    animation: fadeIn 250ms ease-out;
+    animation: fadeIn 200ms ease-out;
   }
-  
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  
   .animate-slide-in-right {
-    animation: slideInRight 250ms ease-out;
+    animation: slideInRight 200ms ease-out;
   }
-  
   @keyframes slideInRight {
-    from {
-      opacity: 0;
-      transform: translateX(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
   }
 }

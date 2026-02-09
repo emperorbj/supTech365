@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { FileCheck, RefreshCw, UserPlus, Users, TrendingUp } from "lucide-react";
+import { FileCheck, RefreshCw, UserPlus, Users, TrendingUp, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Table,
@@ -216,9 +216,9 @@ export default function AllValidations() {
                       <StatusBadge status={validation.status === "accepted" ? "validated" : validation.status} />
                     </TableCell>
                     <TableCell>
-                      <span className={validation.overdue ? "text-destructive font-medium" : ""}>
+                      <span className={`inline-flex items-center gap-1 ${validation.overdue ? "text-destructive font-medium" : ""}`}>
                         {validation.age}{validation.ageUnit}
-                        {validation.overdue && " ⚠"}
+                        {validation.overdue && <AlertTriangle className="h-4 w-4 shrink-0" />}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">

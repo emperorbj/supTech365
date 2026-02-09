@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { Flag, AlertTriangle, Eye } from "lucide-react";
+import { Flag, AlertTriangle, Eye, Circle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -137,9 +137,9 @@ export default function EscalationApprovalDetail() {
             <div className="border-t pt-4">
               <span className="text-sm font-medium block mb-2">Active Alerts:</span>
               <ul className="space-y-1 text-sm">
-                <li>• 🔴 Structuring Pattern (Trans #2, #4, #127, #245 - Sarah Konneh)</li>
-                <li>• 🟡 High Transaction Frequency (Sarah Konneh - 5 CTRs in 68 days)</li>
-                <li>• 🟡 High-Value Business Cash (Trans #89, #156, #278 - Diamond Trading)</li>
+                <li className="flex items-center gap-2"><Circle className="h-2.5 w-2.5 fill-destructive shrink-0" /> Structuring Pattern (Trans #2, #4, #127, #245 - Sarah Konneh)</li>
+                <li className="flex items-center gap-2"><Circle className="h-2.5 w-2.5 fill-warning shrink-0" /> High Transaction Frequency (Sarah Konneh - 5 CTRs in 68 days)</li>
+                <li className="flex items-center gap-2"><Circle className="h-2.5 w-2.5 fill-warning shrink-0" /> High-Value Business Cash (Trans #89, #156, #278 - Diamond Trading)</li>
               </ul>
             </div>
             <Button variant="outline" size="sm">View Complete CTR Report →</Button>
@@ -213,8 +213,9 @@ export default function EscalationApprovalDetail() {
         </Card>
 
         {/* Note */}
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-900">
-          ⚠️ <strong>Note:</strong> Approved escalations are immediately routed to Head of Analysis for analyst assignment. Original CTR data and escalation context will be visible to assigned analyst.
+        <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg text-sm text-foreground flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-warning" />
+          <span><strong>Note:</strong> Approved escalations are immediately routed to Head of Analysis for analyst assignment. Original CTR data and escalation context will be visible to assigned analyst.</span>
         </div>
       </div>
     </MainLayout>

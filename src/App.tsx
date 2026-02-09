@@ -45,8 +45,21 @@ import AnalysisQueue from "./pages/analysis/AnalysisQueue";
 import SubmitReport from "./pages/reporting-entity/SubmitReport";
 import MySubmissions from "./pages/reporting-entity/MySubmissions";
 import SubmissionDetail from "./pages/reporting-entity/SubmissionDetail";
+import ValidationResult from "./pages/reporting-entity/ValidationResult";
+import ValidationErrorReport from "./pages/reporting-entity/ValidationErrorReport";
 import Resubmissions from "./pages/reporting-entity/Resubmissions";
 import Statistics from "./pages/reporting-entity/Statistics";
+import ManualValidationQueue from "./pages/compliance/ManualValidationQueue";
+import ReportReview from "./pages/compliance/ReportReview";
+import ValidationAuditLogs from "./pages/compliance/ValidationAuditLogs";
+import AssignmentQueuePage from "./pages/supervisor/AssignmentQueuePage";
+import TeamWorkloadPage from "./pages/supervisor/TeamWorkloadPage";
+import MyAssignmentsPage from "./pages/my-assignments/MyAssignmentsPage";
+import NotificationsPage from "./pages/notifications/NotificationsPage";
+import EntitiesPage from "./pages/admin/EntitiesPage";
+import EntityDetailPage from "./pages/admin/EntityDetailPage";
+import SessionsPage from "./pages/admin/SessionsPage";
+import ProfilePage from "./pages/profile/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -84,10 +97,63 @@ const App = () => (
                   }
                 />
                 <Route path="/" element={<Index />} />
+              {/* Task Assignment & Workload (FDD Feature 6) - defined early so path matches */}
+              <Route
+                path="/supervisor/assignment-queue"
+                element={
+                  <ProtectedRoute requiredRole={["head_of_compliance", "head_of_analysis", "super_admin"]}>
+                    <AssignmentQueuePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/supervisor/workload"
+                element={
+                  <ProtectedRoute requiredRole={["head_of_compliance", "head_of_analysis", "super_admin"]}>
+                    <TeamWorkloadPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-assignments"
+                element={
+                  <ProtectedRoute requiredRole={["compliance_officer", "analyst"]}>
+                    <MyAssignmentsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route
+                path="/entities"
+                element={
+                  <ProtectedRoute requiredRole={["tech_admin", "super_admin"]}>
+                    <EntitiesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/entities/:id"
+                element={
+                  <ProtectedRoute requiredRole={["tech_admin", "super_admin"]}>
+                    <EntityDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sessions"
+                element={
+                  <ProtectedRoute requiredRole={["tech_admin", "super_admin"]}>
+                    <SessionsPage />
+                  </ProtectedRoute>
+                }
+              />
               {/* Reporting Entity Workspace Routes (f2.md Section 2.1) */}
               <Route path="/submit" element={<SubmitReport />} />
               <Route path="/submissions" element={<MySubmissions />} />
               <Route path="/submissions/:id" element={<SubmissionDetail />} />
+              <Route path="/submissions/:id/result" element={<ValidationResult />} />
+              <Route path="/submissions/:id/errors" element={<ValidationErrorReport />} />
               <Route path="/resubmissions" element={<Resubmissions />} />
               <Route path="/statistics" element={<Statistics />} />
               {/* Compliance Workspace Routes (f2.md Section 2.2) */}
@@ -96,6 +162,9 @@ const App = () => (
               <Route path="/compliance/validation/assign" element={<AssignValidations />} />
               <Route path="/compliance/validation/all" element={<AllValidations />} />
               <Route path="/compliance/validation/:reportId/validate" element={<ValidationDetail />} />
+              <Route path="/compliance/validation-queue" element={<ManualValidationQueue />} />
+              <Route path="/compliance/validation-queue/:submissionId" element={<ReportReview />} />
+              <Route path="/compliance/validation-audit-logs" element={<ValidationAuditLogs />} />
               <Route path="/compliance/ctr-review" element={<CTRReview />} />
               <Route path="/compliance/ctr-review/all" element={<AllCTRs />} />
               <Route path="/compliance/ctr-review/overdue" element={<OverdueCTRs />} />

@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { BarChart3, Download } from "lucide-react";
-import { KPICard } from "@/components/ui/KPICard";
-import { FileText, CheckCircle2, Clock } from "lucide-react";
+import { BarChart3, Download, FileText, CheckCircle2, Clock, TrendingUp, Calendar, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KPICard } from "@/components/ui/KPICard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
@@ -90,7 +89,7 @@ export default function Statistics() {
         {/* Overview KPI Cards */}
         <Card>
           <CardHeader>
-            <CardTitle>📈 Overview (January 2026)</CardTitle>
+            <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Overview (January 2026)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
@@ -122,7 +121,7 @@ export default function Statistics() {
         {/* Submission Breakdown */}
         <Card>
           <CardHeader>
-            <CardTitle>📊 Submission Breakdown</CardTitle>
+            <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" /> Submission Breakdown</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* By Report Type */}
@@ -134,7 +133,7 @@ export default function Statistics() {
                     <span className="text-sm font-medium">STR</span>
                     <span className="text-sm text-muted-foreground">94 (60.3%)</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
+                  <div className="w-full bg-muted rounded-full h-4">
                     <div className="bg-blue-600 h-4 rounded-full" style={{ width: "60.3%" }}></div>
                   </div>
                 </div>
@@ -143,7 +142,7 @@ export default function Statistics() {
                     <span className="text-sm font-medium">CTR</span>
                     <span className="text-sm text-muted-foreground">62 (39.7%)</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
+                  <div className="w-full bg-muted rounded-full h-4">
                     <div className="bg-green-600 h-4 rounded-full" style={{ width: "39.7%" }}></div>
                   </div>
                 </div>
@@ -168,7 +167,7 @@ export default function Statistics() {
                         {item.value} ({item.percentage}%)
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4">
+                    <div className="w-full bg-muted rounded-full h-4">
                       <div className={`${item.color} h-4 rounded-full`} style={{ width: `${item.percentage}%` }}></div>
                     </div>
                   </div>
@@ -185,7 +184,7 @@ export default function Statistics() {
                     <span className="text-sm font-medium">API</span>
                     <span className="text-sm text-muted-foreground">127 (81.4%)</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
+                  <div className="w-full bg-muted rounded-full h-4">
                     <div className="bg-purple-600 h-4 rounded-full" style={{ width: "81.4%" }}></div>
                   </div>
                 </div>
@@ -194,7 +193,7 @@ export default function Statistics() {
                     <span className="text-sm font-medium">Excel Upload</span>
                     <span className="text-sm text-muted-foreground">29 (18.6%)</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4">
+                  <div className="w-full bg-muted rounded-full h-4">
                     <div className="bg-indigo-600 h-4 rounded-full" style={{ width: "18.6%" }}></div>
                   </div>
                 </div>
@@ -206,7 +205,7 @@ export default function Statistics() {
         {/* Monthly Trend */}
         <Card>
           <CardHeader>
-            <CardTitle>📅 Monthly Trend</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Calendar className="h-5 w-5" /> Monthly Trend</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">Submissions by Month (Last 6 Months):</p>
@@ -222,7 +221,7 @@ export default function Statistics() {
                 <div key={item.month} className="flex items-center gap-4">
                   <div className="w-20 text-xs text-muted-foreground">{item.month}</div>
                   <div className="flex-1 flex items-center gap-2">
-                    <div className="relative flex-1 bg-gray-200 rounded h-6">
+                    <div className="relative flex-1 bg-muted rounded h-6">
                       <div
                         className="bg-primary h-6 rounded"
                         style={{ width: `${item.height}%` }}
@@ -242,7 +241,7 @@ export default function Statistics() {
         {/* Processing Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>⏱️ Processing Performance</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5" /> Processing Performance</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -285,7 +284,7 @@ export default function Statistics() {
         {/* Quality Metrics */}
         <Card>
           <CardHeader>
-            <CardTitle>✅ Quality Metrics</CardTitle>
+            <CardTitle className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5" /> Quality Metrics</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

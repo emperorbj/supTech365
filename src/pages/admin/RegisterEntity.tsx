@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff, Loader2, AlertCircle, Check, X, Copy, Mail, ExternalLink } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -20,543 +20,294 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { registrationApi, ApiError } from "@/lib/api";
-import { validatePassword, validateEmail, validatePhone, validateUsername, type PasswordValidationResult } from "@/lib/password-validation";
 import { toast } from "sonner";
-import { useDebounce } from "@/hooks/use-debounce";
 
-const entityRegistrationSchema = z
-  .object({
-    // Entity Information
-    entityName: z.string().min(1, "Entity name is required").max(255, "Entity name is too long"),
-    entityType: z.string().min(1, "Please select an entity type"),
-    entityTypeOther: z.string().optional(),
-    registrationNumber: z.string().min(1, "Registration number is required"),
-    contactEmail: z.string().min(1, "Contact email is required").email("Please enter a valid email address"),
-    contactPhone: z.string().min(1, "Contact phone is required"),
-    
-    // Primary Contact
-    primaryContactName: z.string().min(1, "Full name is required").max(100, "Name is too long"),
-    primaryContactEmail: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-    primaryContactPhone: z.string().min(1, "Phone is required"),
-    
-    // Initial User Account
-    username: z.string().min(3, "Username must be at least 3 characters").max(50, "Username is too long"),
-    userEmail: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-    password: z.string().min(1, "Password is required"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
-  .refine((data) => data.entityType !== "Other" || (data.entityTypeOther && data.entityTypeOther.length > 0), {
-    message: "Please specify entity type",
-    path: ["entityTypeOther"],
-  });
+const schema = z.object({
+  entity_name: z.string().min(1, "Required"),
+  entity_type: z.string().min(1, "Required"),
+  registration_number: z.string().min(1, "Required"),
+  contact_email: z.string().min(1, "Required").email("Invalid email"),
+  contact_phone: z.string().min(1, "Required"),
+  primary_contact_name: z.string().min(1, "Required"),
+  primary_contact_email: z.string().min(1, "Required").email("Invalid email"),
+  primary_contact_phone: z.string().min(1, "Required"),
+  username: z.string().min(1, "Required"),
+  email: z.string().min(1, "Required").email("Invalid email"),
+  password: z.string().min(1, "Required"),
+});
 
-type EntityRegistrationFormData = z.infer<typeof entityRegistrationSchema>;
+type FormData = z.infer<typeof schema>;
 
 export default function RegisterEntity() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [passwordValidation, setPasswordValidation] = useState<PasswordValidationResult | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [registrationData, setRegistrationData] = useState<any>(null);
+  const [registrationData, setRegistrationData] = useState<{
+    entity?: { name: string; entity_type: string; registration_number: string; contact_email: string };
+    user?: { username: string; email: string };
+    message?: string;
+  } | null>(null);
 
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
+    watch,
     formState: { errors },
-  } = useForm<EntityRegistrationFormData>({
-    resolver: zodResolver(entityRegistrationSchema),
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      entityType: "Bank",
+      entity_type: "Bank",
     },
   });
 
-  const username = watch("username");
-  const password = watch("password");
-  const entityType = watch("entityType");
+  const entity_type = watch("entity_type");
 
-  // Debounce username availability check
-  const debouncedUsername = useDebounce(username, 500);
-
-  useEffect(() => {
-    if (debouncedUsername && debouncedUsername.length >= 3) {
-      if (!validateUsername(debouncedUsername)) {
-        setUsernameAvailable(false);
-        return;
-      }
-
-      setIsCheckingUsername(true);
-      registrationApi
-        .checkUsername(debouncedUsername)
-        .then((response) => {
-          setUsernameAvailable(response.available);
-        })
-        .catch(() => {
-          setUsernameAvailable(null);
-        })
-        .finally(() => {
-          setIsCheckingUsername(false);
-        });
-    } else {
-      setUsernameAvailable(null);
-    }
-  }, [debouncedUsername]);
-
-  // Validate password in real-time
-  useEffect(() => {
-    if (password && password.length > 0) {
-      setPasswordValidation(validatePassword(password));
-    } else {
-      setPasswordValidation(null);
-    }
-  }, [password]);
-
-  const onSubmit = async (data: EntityRegistrationFormData) => {
-    // Validate all fields
-    if (!validateEmail(data.contactEmail)) {
-      setError("Please enter a valid contact email address");
-      return;
-    }
-    if (!validateEmail(data.primaryContactEmail)) {
-      setError("Please enter a valid primary contact email address");
-      return;
-    }
-    if (!validateEmail(data.userEmail)) {
-      setError("Please enter a valid user email address");
-      return;
-    }
-    if (!validatePhone(data.contactPhone)) {
-      setError("Please enter a valid contact phone number");
-      return;
-    }
-    if (!validatePhone(data.primaryContactPhone)) {
-      setError("Please enter a valid primary contact phone number");
-      return;
-    }
-    if (!validateUsername(data.username)) {
-      setError("Username must be 3-50 characters and contain only letters, numbers, underscores, or hyphens");
-      return;
-    }
-    if (usernameAvailable === false) {
-      setError("This username is already taken. Please choose another.");
-      return;
-    }
-    if (!passwordValidation || !passwordValidation.isValid) {
-      setError("Password does not meet requirements. Please check the requirements above.");
-      return;
-    }
-    if (data.password !== data.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
+  const onSubmit = async (data: FormData) => {
     setError(null);
     setIsLoading(true);
-
     try {
       const response = await registrationApi.registerEntity({
-        entity_name: data.entityName,
-        entity_type: data.entityType === "Other" ? data.entityTypeOther || "Other" : data.entityType,
-        registration_number: data.registrationNumber,
-        contact_email: data.contactEmail,
-        contact_phone: data.contactPhone,
-        primary_contact_name: data.primaryContactName,
-        primary_contact_email: data.primaryContactEmail,
-        primary_contact_phone: data.primaryContactPhone,
+        entity_name: data.entity_name,
+        entity_type: data.entity_type,
+        registration_number: data.registration_number,
+        contact_email: data.contact_email,
+        contact_phone: data.contact_phone,
+        primary_contact_name: data.primary_contact_name,
+        primary_contact_email: data.primary_contact_email,
+        primary_contact_phone: data.primary_contact_phone,
         username: data.username,
-        email: data.userEmail,
+        email: data.email,
         password: data.password,
       });
-
-      setRegistrationData({ ...response, createdPassword: data.password });
+      setRegistrationData({
+        entity: response.entity
+          ? {
+              name: response.entity.name,
+              entity_type: response.entity.entity_type,
+              registration_number: response.entity.registration_number,
+              contact_email: response.entity.contact_email,
+            }
+          : undefined,
+        user: response.user
+          ? { username: response.user.username, email: response.user.email }
+          : undefined,
+        message: response.message,
+      });
       setShowSuccessDialog(true);
-      toast.success(`Entity '${data.entityName}' and user account '${data.username}' created successfully!`);
+      toast.success(response.message || "Registration successful");
     } catch (err) {
       if (err instanceof ApiError) {
-        switch (err.code) {
-          case "REGISTRATION_NUMBER_EXISTS":
-            setError("This registration number is already in use. Please use a different number.");
-            break;
-          case "USERNAME_EXISTS":
-            setError("This username is already taken. Please choose another.");
-            break;
-          case "EMAIL_EXISTS":
-            setError("This email is already registered to another user/entity.");
-            break;
-          case "WEAK_PASSWORD":
-            setError("Password does not meet requirements. Please check the requirements above.");
-            break;
-          case "PASSWORD_MISMATCH":
-            setError("Passwords do not match.");
-            break;
-          case "VALIDATION_ERROR":
-            setError(err.message || "Please check the form and try again.");
-            break;
-          default:
-            setError(err.message || "An unexpected error occurred. Please try again.");
-        }
+        setError(err.message || "Registration failed");
       } else {
-        setError("Connection error. Please check your internet connection and try again.");
+        setError("Connection error. Please try again.");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCopyCredentials = () => {
-    if (!registrationData) return;
-    const pwd = registrationData.createdPassword ?? "";
-    const text = `Username: ${registrationData.user?.username ?? ""}\nPassword: ${pwd || "N/A"}`;
-    navigator.clipboard.writeText(text);
-    toast.success("Credentials copied to clipboard");
-  };
-
-  const handleSendWelcomeEmail = async () => {
-    // This would call an API endpoint to send welcome email
-    toast.info("Welcome email functionality would be implemented here");
-  };
-
   const breadcrumbItems = [
     { label: "Administration", href: "/admin" },
-    { label: "Reporting Entity Management", href: "/admin/entities" },
-    { label: "Register New Entity", href: "/admin/entities/register" },
+    { label: "Register Entity", href: "/admin/entities/register" },
   ];
 
   return (
     <MainLayout>
       <div className="p-6 space-y-6">
         <Breadcrumb items={breadcrumbItems} />
-        
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold">Register New Reporting Entity</h1>
-            <p className="text-muted-foreground mt-1">Create a new reporting entity and initial user account</p>
-          </div>
 
+        <div className="bg-white dark:bg-card rounded-lg shadow-sm border p-6 space-y-6">
           {error && (
-            <Alert variant="destructive" className="animate-in fade-in-0">
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* Entity Information Section */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Entity Information</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="entityName">Entity Name *</Label>
-                  <Input
-                    id="entityName"
-                    placeholder="e.g., Bank of Monrovia"
-                    {...register("entityName")}
-                    aria-invalid={!!errors.entityName}
-                  />
-                  {errors.entityName && (
-                    <p className="text-sm text-destructive">{errors.entityName.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="entityType">Entity Type *</Label>
-                  <Select
-                    value={entityType}
-                    onValueChange={(value) => setValue("entityType", value)}
-                  >
-                    <SelectTrigger id="entityType">
-                      <SelectValue placeholder="Select entity type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Bank">Bank</SelectItem>
-                      <SelectItem value="MFI">Microfinance Institution (MFI)</SelectItem>
-                      <SelectItem value="FinTech">FinTech</SelectItem>
-                      <SelectItem value="MSB">Money Service Business (MSB)</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.entityType && (
-                    <p className="text-sm text-destructive">{errors.entityType.message}</p>
-                  )}
-                </div>
-
-                {entityType === "Other" && (
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="entityTypeOther">Specify Entity Type *</Label>
-                    <Input
-                      id="entityTypeOther"
-                      placeholder="Enter entity type"
-                      {...register("entityTypeOther")}
-                      aria-invalid={!!errors.entityTypeOther}
-                    />
-                    {errors.entityTypeOther && (
-                      <p className="text-sm text-destructive">{errors.entityTypeOther.message}</p>
-                    )}
-                  </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="entity_name">entity_name</Label>
+                <Input
+                  id="entity_name"
+                  {...register("entity_name")}
+                  aria-invalid={!!errors.entity_name}
+                />
+                {errors.entity_name && (
+                  <p className="text-sm text-destructive">{errors.entity_name.message}</p>
                 )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="registrationNumber">Registration Number *</Label>
-                  <Input
-                    id="registrationNumber"
-                    placeholder="e.g., REG-2024-001"
-                    {...register("registrationNumber")}
-                    aria-invalid={!!errors.registrationNumber}
-                  />
-                  {errors.registrationNumber && (
-                    <p className="text-sm text-destructive">{errors.registrationNumber.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="contactEmail">Contact Email *</Label>
-                  <Input
-                    id="contactEmail"
-                    type="email"
-                    placeholder="entity@example.com"
-                    {...register("contactEmail")}
-                    aria-invalid={!!errors.contactEmail}
-                  />
-                  {errors.contactEmail && (
-                    <p className="text-sm text-destructive">{errors.contactEmail.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="contactPhone">Contact Phone *</Label>
-                  <Input
-                    id="contactPhone"
-                    placeholder="+231 XX XXX XXXX"
-                    {...register("contactPhone")}
-                    aria-invalid={!!errors.contactPhone}
-                  />
-                  {errors.contactPhone && (
-                    <p className="text-sm text-destructive">{errors.contactPhone.message}</p>
-                  )}
-                </div>
               </div>
-            </div>
-
-            {/* Primary Contact Section */}
-            <div className="space-y-4 border-t pt-6">
-              <h2 className="text-lg font-semibold">Primary Contact</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="primaryContactName">Full Name *</Label>
-                  <Input
-                    id="primaryContactName"
-                    placeholder="John Doe"
-                    {...register("primaryContactName")}
-                    aria-invalid={!!errors.primaryContactName}
-                  />
-                  {errors.primaryContactName && (
-                    <p className="text-sm text-destructive">{errors.primaryContactName.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="primaryContactEmail">Email *</Label>
-                  <Input
-                    id="primaryContactEmail"
-                    type="email"
-                    placeholder="contact@example.com"
-                    {...register("primaryContactEmail")}
-                    aria-invalid={!!errors.primaryContactEmail}
-                  />
-                  {errors.primaryContactEmail && (
-                    <p className="text-sm text-destructive">{errors.primaryContactEmail.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="primaryContactPhone">Phone *</Label>
-                  <Input
-                    id="primaryContactPhone"
-                    placeholder="+231 XX XXX XXXX"
-                    {...register("primaryContactPhone")}
-                    aria-invalid={!!errors.primaryContactPhone}
-                  />
-                  {errors.primaryContactPhone && (
-                    <p className="text-sm text-destructive">{errors.primaryContactPhone.message}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Initial User Account Section */}
-            <div className="space-y-4 border-t pt-6">
-              <h2 className="text-lg font-semibold">Initial User Account</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username *</Label>
-                  <div className="relative">
-                    <Input
-                      id="username"
-                      placeholder="johndoe"
-                      {...register("username")}
-                      aria-invalid={!!errors.username || usernameAvailable === false}
-                      className="pr-20"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                      {isCheckingUsername && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                      {!isCheckingUsername && usernameAvailable === true && (
-                        <Check className="h-4 w-4 text-green-600" />
-                      )}
-                      {!isCheckingUsername && usernameAvailable === false && (
-                        <X className="h-4 w-4 text-destructive" />
-                      )}
-                    </div>
-                  </div>
-                  {errors.username && (
-                    <p className="text-sm text-destructive">{errors.username.message}</p>
-                  )}
-                  {usernameAvailable === false && (
-                    <p className="text-sm text-destructive">This username is already taken. Please choose another.</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="userEmail">Email *</Label>
-                  <Input
-                    id="userEmail"
-                    type="email"
-                    placeholder="user@example.com"
-                    {...register("userEmail")}
-                    aria-invalid={!!errors.userEmail}
-                  />
-                  {errors.userEmail && (
-                    <p className="text-sm text-destructive">{errors.userEmail.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter password"
-                      {...register("password")}
-                      aria-invalid={!!errors.password}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-sm text-destructive">{errors.password.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm password"
-                      {...register("confirmPassword")}
-                      aria-invalid={!!errors.confirmPassword}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {errors.confirmPassword && (
-                    <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Password Requirements */}
-              {passwordValidation && (
-                <div className="space-y-2 p-4 bg-muted rounded-md">
-                  <p className="text-sm font-medium">Password Requirements:</p>
-                  <ul className="space-y-1 text-sm">
-                    {passwordValidation.requirements.map((req, index) => (
-                      <li
-                        key={index}
-                        className={`flex items-center gap-2 ${
-                          req.met ? "text-green-600" : "text-muted-foreground"
-                        }`}
-                      >
-                        {req.met ? (
-                          <Check className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <X className="h-4 w-4 text-muted-foreground" />
-                        )}
-                        <span>{req.label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
 
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label htmlFor="entity_type">entity_type</Label>
+                <Select
+                  value={entity_type}
+                  onValueChange={(v) => setValue("entity_type", v)}
+                >
+                  <SelectTrigger id="entity_type">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Bank">Bank</SelectItem>
+                    <SelectItem value="MFI">MFI</SelectItem>
+                    <SelectItem value="FinTech">FinTech</SelectItem>
+                    <SelectItem value="MSB">MSB</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.entity_type && (
+                  <p className="text-sm text-destructive">{errors.entity_type.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="registration_number">registration_number</Label>
                 <Input
-                  value="Reporting Entity User"
-                  disabled
-                  className="bg-muted"
+                  id="registration_number"
+                  {...register("registration_number")}
+                  aria-invalid={!!errors.registration_number}
                 />
-                <p className="text-sm text-muted-foreground">Auto-assigned, cannot be changed</p>
+                {errors.registration_number && (
+                  <p className="text-sm text-destructive">{errors.registration_number.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact_email">contact_email</Label>
+                <Input
+                  id="contact_email"
+                  type="email"
+                  {...register("contact_email")}
+                  aria-invalid={!!errors.contact_email}
+                />
+                {errors.contact_email && (
+                  <p className="text-sm text-destructive">{errors.contact_email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact_phone">contact_phone</Label>
+                <Input
+                  id="contact_phone"
+                  {...register("contact_phone")}
+                  aria-invalid={!!errors.contact_phone}
+                />
+                {errors.contact_phone && (
+                  <p className="text-sm text-destructive">{errors.contact_phone.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="primary_contact_name">primary_contact_name</Label>
+                <Input
+                  id="primary_contact_name"
+                  {...register("primary_contact_name")}
+                  aria-invalid={!!errors.primary_contact_name}
+                />
+                {errors.primary_contact_name && (
+                  <p className="text-sm text-destructive">{errors.primary_contact_name.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="primary_contact_email">primary_contact_email</Label>
+                <Input
+                  id="primary_contact_email"
+                  type="email"
+                  {...register("primary_contact_email")}
+                  aria-invalid={!!errors.primary_contact_email}
+                />
+                {errors.primary_contact_email && (
+                  <p className="text-sm text-destructive">{errors.primary_contact_email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="primary_contact_phone">primary_contact_phone</Label>
+                <Input
+                  id="primary_contact_phone"
+                  {...register("primary_contact_phone")}
+                  aria-invalid={!!errors.primary_contact_phone}
+                />
+                {errors.primary_contact_phone && (
+                  <p className="text-sm text-destructive">{errors.primary_contact_phone.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">username</Label>
+                <Input
+                  id="username"
+                  {...register("username")}
+                  aria-invalid={!!errors.username}
+                />
+                {errors.username && (
+                  <p className="text-sm text-destructive">{errors.username.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  aria-invalid={!!errors.email}
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    aria-invalid={!!errors.password}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password.message}</p>
+                )}
               </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex gap-4 pt-4 border-t">
+            <div className="flex gap-4 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate("/admin/entities/all")}
+                onClick={() => navigate(-1)}
                 disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={
-                  isLoading ||
-                  usernameAvailable === false ||
-                  (passwordValidation !== null && !passwordValidation.isValid)
-                }
-              >
+              <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     Registering...
                   </>
                 ) : (
-                  "Register Entity & Create User"
+                  "Register"
                 )}
               </Button>
             </div>
@@ -564,66 +315,38 @@ export default function RegisterEntity() {
         </div>
       </div>
 
-      {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Registration Successful!</DialogTitle>
-            <DialogDescription>
-              Entity and user account have been created successfully.
-            </DialogDescription>
+            <DialogTitle>Registration successful</DialogTitle>
           </DialogHeader>
-
           {registrationData && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Entity Details:</p>
-                <div className="bg-muted p-3 rounded-md space-y-1 text-sm">
-                  <p><strong>Entity ID:</strong> {registrationData.entity?.id}</p>
-                  <p><strong>Entity Name:</strong> {registrationData.entity?.name}</p>
+            <div className="space-y-3 text-sm">
+              {registrationData.entity && (
+                <div className="space-y-1">
+                  <p><span className="font-medium">entity_name:</span> {registrationData.entity.name}</p>
+                  <p><span className="font-medium">entity_type:</span> {registrationData.entity.entity_type}</p>
+                  <p><span className="font-medium">registration_number:</span> {registrationData.entity.registration_number}</p>
+                  <p><span className="font-medium">contact_email:</span> {registrationData.entity.contact_email}</p>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">User Account:</p>
-                <div className="bg-muted p-3 rounded-md space-y-1 text-sm">
-                  <p><strong>Username:</strong> {registrationData.user?.username}</p>
-                  <p><strong>Email:</strong> {registrationData.user?.email}</p>
+              )}
+              {registrationData.user && (
+                <div className="space-y-1">
+                  <p><span className="font-medium">username:</span> {registrationData.user.username}</p>
+                  <p><span className="font-medium">email:</span> {registrationData.user.email}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">User must change password on first login.</p>
-              </div>
-
-              <DialogFooter className="flex-col sm:flex-row gap-2">
-                <Button variant="outline" onClick={handleCopyCredentials}>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy Credentials
-                </Button>
-                <Button variant="outline" onClick={handleSendWelcomeEmail}>
-                  <Mail className="h-4 w-4 mr-2" />
-                  Send Welcome Email
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/admin/entities/${registrationData.entity.id}`)}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View Entity
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowSuccessDialog(false);
-                    window.location.reload();
-                  }}
-                >
-                  Register Another
-                </Button>
-                <Button onClick={() => navigate("/admin/entities/all")}>
-                  Done
-                </Button>
-              </DialogFooter>
+              )}
+              {registrationData.message && (
+                <p><span className="font-medium">message:</span> {registrationData.message}</p>
+              )}
             </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowSuccessDialog(false); window.location.reload(); }}>
+              Register another
+            </Button>
+            <Button onClick={() => navigate("/")}>Done</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </MainLayout>

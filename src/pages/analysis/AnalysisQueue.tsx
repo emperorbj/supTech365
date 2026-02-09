@@ -14,7 +14,7 @@ export default function AnalysisQueue() {
       <div className="p-6 space-y-6">
         <div>
           <h1>Analysis Queue</h1>
-          <p className="text-gray-600 mt-1">Reports assigned for analysis</p>
+          <p className="text-muted-foreground mt-1">Reports assigned for analysis</p>
         </div>
         {/* Content will be added here */}
       </div>

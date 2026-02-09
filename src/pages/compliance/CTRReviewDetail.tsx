@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { FileText, Download, Printer, Eye, AlertTriangle, X } from "lucide-react";
+import { FileText, Download, Printer, Eye, AlertTriangle, X, Circle, Lightbulb, User, Building2, Check, ChevronRight } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -261,13 +261,15 @@ export default function CTRReviewDetail() {
                     <TableCell className="font-mono text-sm">{tx.account}</TableCell>
                     <TableCell>
                       {tx.alert === "high" && (
-                        <Badge variant="destructive" className="h-5 px-1">
-                          🔴
+                        <Badge variant="destructive" className="h-5 px-1 gap-0.5">
+                          <Circle className="h-2.5 w-2.5 fill-current" />
+                          High
                         </Badge>
                       )}
                       {tx.alert === "medium" && (
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300 h-5 px-1">
-                          🟡
+                        <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30 h-5 px-1 gap-0.5">
+                          <Circle className="h-2.5 w-2.5 fill-current" />
+                          Med
                         </Badge>
                       )}
                     </TableCell>
@@ -324,8 +326,9 @@ export default function CTRReviewDetail() {
               </PaginationContent>
             </Pagination>
           </div>
-          <div className="p-4 bg-muted/50 text-sm text-muted-foreground">
-            💡 Click any row to view full transaction details in side panel
+          <div className="p-4 bg-muted/50 text-sm text-muted-foreground flex items-center gap-2">
+            <Lightbulb className="h-4 w-4 shrink-0" />
+            Click any row to view full transaction details in side panel
           </div>
         </Card>
 
@@ -346,14 +349,14 @@ export default function CTRReviewDetail() {
                 <p>Appears in: 4 transactions (Trans #2, #4, #127, #245)</p>
                 <p>Total in this report: $58,500</p>
                 <p>Historical Activity: 4 prior CTRs (60 days), 1 STR (12 months ago)</p>
-                <p>Risk Indicators: 🔴 High-frequency pattern, 🔴 Structuring suspicion</p>
+                <p className="flex items-center gap-1 flex-wrap">Risk Indicators: <Circle className="h-2.5 w-2.5 fill-destructive shrink-0" /> High-frequency pattern, <Circle className="h-2.5 w-2.5 fill-destructive shrink-0" /> Structuring suspicion</p>
               </div>
             </div>
 
             <div className="border rounded-lg p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">👤 John Mensah (ID: LIB-987654321)</span>
+                  <span className="font-medium flex items-center gap-2"><User className="h-4 w-4 shrink-0" /> John Mensah (ID: LIB-987654321)</span>
                 </div>
                 <Button variant="ghost" size="sm">Expand ▼</Button>
               </div>
@@ -368,7 +371,7 @@ export default function CTRReviewDetail() {
             <div className="border rounded-lg p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">🏢 Diamond Trading Ltd (REG: LIB-BUS-555444)</span>
+                  <span className="font-medium flex items-center gap-2"><Building2 className="h-4 w-4 shrink-0" /> Diamond Trading Ltd (REG: LIB-BUS-555444)</span>
                 </div>
                 <Button variant="ghost" size="sm">Expand ▼</Button>
               </div>
@@ -377,7 +380,7 @@ export default function CTRReviewDetail() {
                 <p>Total: $35,000</p>
                 <p>Historical Activity: 1 prior CTR (90 days), 0 STRs</p>
                 <p>Business Type: Precious Metals Trading (High-Risk Industry)</p>
-                <p>Risk Indicators: 🟡 High-value cash activity</p>
+                <p className="flex items-center gap-1">Risk Indicators: <Circle className="h-2.5 w-2.5 fill-warning shrink-0" /> High-value cash activity</p>
               </div>
             </div>
           </CardContent>
@@ -471,8 +474,9 @@ export default function CTRReviewDetail() {
         </Card>
 
         {/* Tip */}
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
-          💡 <strong>TIP:</strong> Escalation sends this CTR to Head of Compliance approval queue. If approved, report becomes "Escalated CTR" and routes to Analysis team.
+        <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg text-sm text-foreground flex items-start gap-2">
+          <Lightbulb className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+          <span><strong>TIP:</strong> Escalation sends this CTR to Head of Compliance approval queue. If approved, report becomes "Escalated CTR" and routes to Analysis team.</span>
         </div>
       </div>
 
@@ -566,7 +570,7 @@ export default function CTRReviewDetail() {
                     <p>This transaction is part of a 4-transaction pattern totaling $58,500 conducted by Sarah Konneh within 48 hours. All amounts positioned just below $15,000 individual transaction threshold.</p>
                   </div>
                   <Button variant="outline" size="sm" className="w-full">
-                    View Complete Alert Details →
+                    View Complete Alert Details <ChevronRight className="h-4 w-4 ml-1 inline" />
                   </Button>
                 </CardContent>
               </Card>

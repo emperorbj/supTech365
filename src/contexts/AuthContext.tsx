@@ -14,6 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (userData: any, accessToken: string, sessionId: string, rememberMe: boolean, passwordChangeRequired: boolean) => void;
   logout: () => Promise<void>;
+  extendSession: () => Promise<void>;
   checkAuth: () => Promise<void>;
   requiresPasswordChange: boolean;
 }
@@ -104,6 +105,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const extendSession = async () => {
+    const data = await authApi.extendSession();
+    const rememberMe = typeof localStorage !== "undefined" && localStorage.getItem("suptech_remember_me") === "true";
+    setStoredToken(data.access_token, rememberMe);
+    setUser(convertToUser(data.user));
+    setSession({ sessionId: data.session_id });
+    setRequiresPasswordChange(data.password_change_required);
+  };
+
   const setRole = (role: UserRole) => {
     if (user) {
       setUser({ ...user, role });
@@ -130,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated,
         login,
         logout,
+        extendSession,
         checkAuth,
         requiresPasswordChange,
       }}

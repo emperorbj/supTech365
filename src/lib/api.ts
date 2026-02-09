@@ -81,6 +81,36 @@ function parse422Detail(detail: unknown): { message: string; fields?: Record<str
   };
 }
 
+/** Parse API error body into code and message. Handles { success: false, error: { code, message } }, detail, etc. */
+function parseErrorBody(
+  body: unknown,
+  status: number,
+  fallbackMessage: string = "Request failed"
+): { code: string; message: string } {
+  if (body && typeof body === "object") {
+    const b = body as Record<string, unknown>;
+    // { success: false, error: { code, message, details } }
+    if (b.error && typeof b.error === "object") {
+      const err = b.error as Record<string, unknown>;
+      const code = typeof err.code === "string" ? err.code : "ERROR";
+      const message = typeof err.message === "string" ? err.message : fallbackMessage;
+      return { code, message };
+    }
+    // Top-level code/message
+    const code = typeof b.code === "string" ? b.code : "UNKNOWN_ERROR";
+    const message =
+      typeof b.message === "string"
+        ? b.message
+        : status === 422 && b.detail
+          ? Array.isArray(b.detail)
+            ? parse422Detail(b.detail).message
+            : String(b.detail)
+          : fallbackMessage;
+    return { code, message };
+  }
+  return { code: "UNKNOWN_ERROR", message: fallbackMessage };
+}
+
 interface RequestOptions extends RequestInit {
   /** If true, do not send Authorization header (for login, forgot-password, reset) */
   public?: boolean;
@@ -110,14 +140,16 @@ async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Pr
     const isJson = response.headers.get("content-type")?.includes("application/json");
     const body = isJson ? await response.json().catch(() => ({})) : {};
 
-    if (response.status === 422 && body.detail) {
-      const { message } = parse422Detail(body.detail);
+    if (response.status === 422 && body && typeof body === "object" && Array.isArray((body as any).detail)) {
+      const { message } = parse422Detail((body as any).detail);
       throw new ApiError("VALIDATION_ERROR", message, 422, body);
     }
 
-    const code = (body as any).code || (body as any).error || "UNKNOWN_ERROR";
-    const message =
-      (body as any).message || (body as any).detail?.[0]?.msg || response.statusText || "Request failed";
+    const { code, message } = parseErrorBody(
+      body,
+      response.status,
+      response.statusText || "Request failed"
+    );
     throw new ApiError(code, message, response.status, body);
   }
 
@@ -149,6 +181,28 @@ export interface LoginResponse {
   session_id: string;
 }
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  account_status: string;
+  entity_id: string | null;
+  entity_name: string | null;
+  last_login: string | null;
+  created_at: string;
+}
+
+export interface SessionInfo {
+  id: string;
+  created_at: string;
+  last_activity: string;
+  expires_at: string;
+  ip_address: string;
+  user_agent: string;
+  is_remember_me: boolean;
+}
+
 export const authApi = {
   login: async (
     usernameOrEmail: string,
@@ -168,43 +222,24 @@ export const authApi = {
   },
 
   logout: async (): Promise<string> => {
-    const result = await apiRequest<string>("/auth/logout", {
-      method: "POST",
-    });
-    clearStoredToken();
-    return result as string;
+    try {
+      const result = await apiRequest<string>("/api/v1/auth/logout", {
+        method: "POST",
+      });
+      return result as string;
+    } finally {
+      clearStoredToken();
+    }
   },
 
   refresh: async (): Promise<LoginResponse> => {
-    const data = await apiRequest<LoginResponse>("/auth/refresh", {
+    return apiRequest<LoginResponse>("/api/v1/auth/refresh", {
       method: "POST",
     });
-    return data;
   },
 
-  getProfile: async (): Promise<{
-    id: string;
-    username: string;
-    email: string;
-    role: string;
-    account_status: string;
-    entity_id: string | null;
-    entity_name: string | null;
-    last_login: string | null;
-  }> => {
-    const data = await apiRequest<{
-      id: string;
-      username: string;
-      email: string;
-      role: string;
-      account_status: string;
-      entity_id: string | null;
-      entity_name: string | null;
-      last_login: string | null;
-    }>("/auth/user/profile", {
-      method: "GET",
-    });
-    return data;
+  getProfile: async (): Promise<UserProfile> => {
+    return apiRequest<UserProfile>("/api/v1/auth/user/profile", { method: "GET" });
   },
 
   sessionStatus: async (): Promise<{
@@ -213,19 +248,25 @@ export const authApi = {
     minutes_remaining: number;
     requires_refresh: boolean;
   }> => {
-    return apiRequest("/auth/session/status", { method: "GET" });
+    return apiRequest("/api/v1/auth/session/status", { method: "GET" });
   },
 
-  /** Extend session (refresh token); updates stored token */
+  /** Check if session is expiring soon; returns warning message string or empty. */
+  sessionWarning: async (): Promise<string> => {
+    const result = await apiRequest<string>("/api/v1/auth/session/warning", { method: "GET" });
+    return typeof result === "string" ? result : "";
+  },
+
+  /** Extend session (refresh token); updates stored token. Caller should also update auth context from returned user/session. */
   extendSession: async (): Promise<LoginResponse> => {
-    const data = await apiRequest<LoginResponse>("/auth/refresh", { method: "POST" });
+    const data = await apiRequest<LoginResponse>("/api/v1/auth/refresh", { method: "POST" });
     const rememberMe = typeof localStorage !== "undefined" && localStorage.getItem(REMEMBER_ME_KEY) === "true";
     setStoredToken(data.access_token, rememberMe);
     return data;
   },
 
   forgotPassword: async (email: string): Promise<{ message: string; token_expires_at?: string; email_sent?: boolean }> => {
-    return apiRequest("/auth/password/forgot", {
+    return apiRequest("/api/v1/auth/password/forgot", {
       method: "POST",
       body: JSON.stringify({ email }),
       public: true,
@@ -238,7 +279,7 @@ export const authApi = {
     minutes_remaining: number;
     message?: string;
   }> => {
-    return apiRequest(`/auth/password/reset/${encodeURIComponent(token)}`, {
+    return apiRequest(`/api/v1/auth/password/reset/${encodeURIComponent(token)}`, {
       method: "GET",
       public: true,
     });
@@ -249,7 +290,7 @@ export const authApi = {
     newPassword: string,
     confirmPassword: string
   ): Promise<{ message: string; user_id?: string }> => {
-    return apiRequest("/auth/password/reset", {
+    return apiRequest("/api/v1/auth/password/reset", {
       method: "POST",
       body: JSON.stringify({
         token,
@@ -265,7 +306,7 @@ export const authApi = {
     newPassword: string,
     confirmPassword: string
   ): Promise<{ message: string; password_change_required?: boolean; requires_reauth?: boolean }> => {
-    return apiRequest("/auth/password/change", {
+    return apiRequest("/api/v1/auth/password/change", {
       method: "POST",
       body: JSON.stringify({
         current_password: currentPassword,
@@ -275,14 +316,18 @@ export const authApi = {
     });
   },
 
+  /** GET /api/v1/auth/sessions - list current user's sessions */
+  getSessions: async (): Promise<SessionInfo[]> => {
+    return apiRequest<SessionInfo[]>("/api/v1/auth/sessions", { method: "GET" });
+  },
+
   terminateAllSessions: async (): Promise<string> => {
-    const result = await apiRequest<string>("/auth/sessions/terminate-all", {
+    const result = await apiRequest<string>("/api/v1/auth/sessions/terminate-all", {
       method: "POST",
     });
     clearStoredToken();
     return result as string;
   },
-
 };
 
 // --- Registration API ---
@@ -323,6 +368,35 @@ export interface RegisterEntityResponse {
   message: string;
 }
 
+export interface Entity {
+  id: string;
+  name: string;
+  entity_type: string;
+  registration_number: string;
+  contact_email: string;
+  is_active: boolean;
+}
+
+export interface GetEntitiesResponse {
+  data: Entity[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface UpdateEntityPayload {
+  name: string;
+  entity_type: string;
+  registration_number: string;
+  contact_email: string;
+}
+
+export interface DeactivateEntityResponse {
+  message: string;
+  entity_id: string;
+  users_disabled: boolean;
+}
+
 /** Only these keys are sent to POST /admin/entities/register */
 const REGISTER_ENTITY_KEYS: (keyof RegisterEntityPayload)[] = [
   "entity_name",
@@ -347,7 +421,7 @@ export const registrationApi = {
       },
       {} as RegisterEntityPayload
     );
-    return apiRequest<RegisterEntityResponse>("/admin/entities/register", {
+    return apiRequest<RegisterEntityResponse>("/api/v1/admin/entities/register", {
       method: "POST",
       body: JSON.stringify(body),
     });
@@ -358,7 +432,32 @@ export const registrationApi = {
     if (params?.limit != null) search.set("limit", String(params.limit));
     if (params?.offset != null) search.set("offset", String(params.offset));
     const qs = search.toString();
-    return apiRequest<unknown>(`/api/entities${qs ? `?${qs}` : ""}`, { method: "GET" });
+    return apiRequest<GetEntitiesResponse>(`/api/v1/entity/${qs ? `?${qs}` : ""}`, { method: "GET" });
+  },
+
+  getEntity: async (id: string): Promise<Entity> => {
+    return apiRequest<Entity>(`/api/v1/entity/${encodeURIComponent(id)}`, { method: "GET" });
+  },
+
+  getEntityByRegistrationNumber: async (regNumber: string): Promise<Entity> => {
+    return apiRequest<Entity>(
+      `/api/v1/entity/by-registration/${encodeURIComponent(regNumber)}`,
+      { method: "GET" }
+    );
+  },
+
+  updateEntity: async (id: string, payload: UpdateEntityPayload): Promise<Entity> => {
+    return apiRequest<Entity>(`/api/v1/entity/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deactivateEntity: async (id: string): Promise<DeactivateEntityResponse> => {
+    return apiRequest<DeactivateEntityResponse>(
+      `/api/v1/entity/entities/${encodeURIComponent(id)}`,
+      { method: "DELETE" }
+    );
   },
 
   checkUsername: async (username: string): Promise<{ available: boolean; username: string; message?: string }> => {
@@ -372,3 +471,72 @@ export const registrationApi = {
     }
   },
 };
+
+// --- Submission API (Excel upload) ---
+
+export type ExcelReportType = "STR" | "CTR" | "Monthly" | "Quarterly";
+
+export interface ExcelSubmissionResponse {
+  status: string;
+  reference: string;
+  entity_report_id: string;
+  timestamp: string;
+  message: string;
+}
+
+const MAX_EXCEL_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
+export async function submitExcelReport(
+  file: File,
+  reportType: ExcelReportType,
+  entityReference?: string | null
+): Promise<ExcelSubmissionResponse> {
+  if (file.size > MAX_EXCEL_SIZE_BYTES) {
+    throw new ApiError(
+      "FILE_TOO_LARGE",
+      "File size exceeds maximum allowed size of 10MB",
+      413
+    );
+  }
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("report_type", reportType);
+  if (entityReference != null && entityReference !== "") {
+    formData.append("entity_reference", entityReference);
+  }
+
+  const token = getStoredToken();
+  const headers: HeadersInit = {
+    Accept: "application/json",
+  };
+  if (token) {
+    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  }
+
+  const url = `${API_BASE_URL}/api/v1/submission/excel`;
+  const response = await fetch(url, {
+    method: "POST",
+    body: formData,
+    headers,
+    credentials: "omit",
+  });
+
+  const isJson = response.headers.get("content-type")?.includes("application/json");
+  const body = isJson ? await response.json().catch(() => ({})) : await response.text();
+
+  if (!response.ok) {
+    const fallback = "Submission failed";
+    const parsed =
+      typeof body === "object" && body !== null
+        ? parseErrorBody(body, response.status, fallback)
+        : { code: "SUBMISSION_ERROR", message: response.statusText || fallback };
+    throw new ApiError(
+      response.status === 422 ? "VALIDATION_ERROR" : parsed.code,
+      parsed.message,
+      response.status,
+      body
+    );
+  }
+
+  return body as ExcelSubmissionResponse;
+}

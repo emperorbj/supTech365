@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { FileCheck, RefreshCw, Search } from "lucide-react";
+import { FileCheck, RefreshCw, Search, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Table,
@@ -171,9 +171,9 @@ export default function ValidationQueue() {
                     <TableCell>{validation.transactionCount}</TableCell>
                     <TableCell className="text-muted-foreground">{validation.submittedDate}</TableCell>
                     <TableCell>
-                      <span className={validation.overdue ? "text-destructive font-medium" : ""}>
+                      <span className={`inline-flex items-center gap-1 ${validation.overdue ? "text-destructive font-medium" : ""}`}>
                         {validation.age}{validation.ageUnit}
-                        {validation.overdue && " ⚠"}
+                        {validation.overdue && <AlertTriangle className="h-4 w-4 shrink-0" />}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">

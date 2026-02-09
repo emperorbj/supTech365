@@ -15,7 +15,7 @@ interface BreadcrumbProps {
 
 export function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <nav className="flex items-center h-12 px-6 bg-gray-50 border-b border-gray-200">
+    <nav className="flex items-center h-12 px-4 sm:px-6 bg-muted/40 border-b border-border">
       <ol className="flex items-center gap-2 text-sm">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
@@ -23,12 +23,12 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
           return (
             <li key={index} className="flex items-center gap-2">
               {index > 0 && (
-                <ChevronRight className="h-4 w-4 text-gray-300" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground/60 shrink-0" />
               )}
               {(item.href || item.link) && !isLast ? (
                 <Link
                   to={item.href || item.link || "#"}
-                  className="flex items-center gap-2 text-primary hover:underline"
+                  className="flex items-center gap-2 text-primary hover:text-primary/90 hover:underline underline-offset-2"
                 >
                   {item.icon && <span className="h-5 w-5">{item.icon}</span>}
                   <span>{item.label}</span>
@@ -37,7 +37,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
                 <span
                   className={cn(
                     "flex items-center gap-2",
-                    isLast ? "font-medium text-gray-900" : "text-gray-600"
+                    isLast ? "font-medium text-foreground" : "text-muted-foreground"
                   )}
                 >
                   {item.icon && <span className="h-5 w-5">{item.icon}</span>}

@@ -110,15 +110,15 @@ export default function Login() {
       } else {
         const role = mapBackendRole(response.user.role);
         const roleRoutes: Record<string, string> = {
-          reporting_entity: "/reporting-entity/submissions",
+          reporting_entity: "/submissions",
           compliance_officer: "/compliance/validation/assigned",
           head_of_compliance: "/compliance/dashboards",
           analyst: "/analysis/queue/assigned",
           head_of_analysis: "/analysis/dashboards",
           director_ops: "/audit/dashboards/director-ops",
           oic: "/audit/dashboards/oic",
-          tech_admin: "/admin/users",
-          super_admin: "/admin/users",
+          tech_admin: "/",
+          super_admin: "/",
         };
         navigate(roleRoutes[role] || "/");
       }
@@ -161,17 +161,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-lg shadow-lg">
-        {/* Logo and Title */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4 py-8">
+      <div className="w-full max-w-md space-y-8 bg-card border border-border/80 p-8 rounded-xl shadow-soft-lg">
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">FIA</span>
+          <div className="flex items-center justify-center gap-3">
+            <div className="h-11 w-11 bg-primary rounded-xl flex items-center justify-center shadow-sm">
+              <span className="text-primary-foreground font-bold text-xl">FIA</span>
             </div>
-            <h1 className="text-2xl font-bold">SupTech365</h1>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">SupTech365</h1>
           </div>
-          <h2 className="text-xl font-semibold">Welcome Back</h2>
+          <h2 className="text-xl font-semibold text-foreground">Welcome back</h2>
           <p className="text-sm text-muted-foreground">Sign in to your account</p>
         </div>
 
@@ -185,9 +184,9 @@ export default function Login() {
 
         {/* Lockout Countdown */}
         {lockoutExpiresAt && remainingMinutes !== null && (
-          <Alert className="bg-yellow-50 border-yellow-200">
-            <AlertCircle className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-800">
+          <Alert className="bg-warning/10 border-warning/30 text-foreground">
+            <AlertCircle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-foreground">
               Account locked. Please try again in {remainingMinutes} minute{remainingMinutes !== 1 ? "s" : ""}.
             </AlertDescription>
           </Alert>
@@ -282,8 +281,7 @@ export default function Login() {
           </Button>
         </form>
 
-        {/* Support Contact */}
-        <div className="text-center text-sm text-muted-foreground border-t pt-4">
+        <div className="text-center text-sm text-muted-foreground border-t border-border pt-4">
           <p>Need help? Contact: support@fia.gov.lr</p>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Clock, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -9,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { authApi, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -25,6 +25,7 @@ export function SessionTimeoutModal({
   onExtend,
   onLogout,
 }: SessionTimeoutModalProps) {
+  const { extendSession } = useAuth();
   const [isExtending, setIsExtending] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [displayTime, setDisplayTime] = useState(timeRemaining);
@@ -52,8 +53,8 @@ export function SessionTimeoutModal({
   const handleStayLoggedIn = async () => {
     setIsExtending(true);
     try {
-      await authApi.extendSession();
-      toast.success("Session extended");
+      await extendSession();
+      toast.success("Session extended. You’re still signed in.");
       onExtend();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -69,15 +70,12 @@ export function SessionTimeoutModal({
   const handleSaveAndLogout = async () => {
     setIsLoggingOut(true);
     try {
-      // Auto-save form data to localStorage
-      // This would be implemented based on your form state management
-      // For now, we'll just logout
       await authApi.logout();
-      toast.success("Your session has been saved. Please log in to continue.");
+      toast.success("You have been signed out.");
       onLogout();
     } catch (err) {
       if (err instanceof ApiError) {
-        toast.error(err.message || "Failed to logout");
+        toast.error(err.message || "Failed to sign out");
       } else {
         toast.error("Connection error. Please try again.");
       }
@@ -114,10 +112,10 @@ export function SessionTimeoutModal({
               {isLoggingOut ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
+                  Signing out...
                 </>
               ) : (
-                "Save & Logout"
+                "Logout"
               )}
             </Button>
             <Button

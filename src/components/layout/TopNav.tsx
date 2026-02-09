@@ -1,6 +1,9 @@
-import { Search, Bell, ChevronDown, Settings, Lock, HelpCircle, MessageSquare, LogOut, Menu, X } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Search, ChevronDown, Settings, Lock, HelpCircle, MessageSquare, LogOut, Menu, X } from "lucide-react";
+import { NotificationBell } from "@/components/assignment/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_LABELS } from "@/types/roles";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,9 +18,16 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function TopNav() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const { isMobileNavOpen, setIsMobileNavOpen } = useSidebar();
   const isMobile = useIsMobile();
+
+  const handleLogout = async () => {
+    await logout();
+    toast.success("You have been signed out.");
+    navigate("/login", { replace: true });
+  };
   const initials = user?.name
     .split(" ")
     .map((n) => n[0])
@@ -25,87 +35,74 @@ export function TopNav() {
     .toUpperCase();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-gray-200 bg-white">
-      <div className="flex h-full items-center justify-between px-6 gap-4">
-        {/* Hamburger Menu (Mobile) - f2.md Section 5.1 */}
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-border/80 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      <div className="flex h-full items-center justify-between px-4 sm:px-6 gap-4">
         {isMobile && (
           <Button
             variant="ghost"
             size="icon"
-            className="h-10 w-10 rounded-lg hover:bg-gray-100"
+            className="h-10 w-10 rounded-xl hover:bg-muted"
             onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
           >
             {isMobileNavOpen ? (
-              <X className="h-6 w-6 text-gray-900" />
+              <X className="h-5 w-5 text-foreground" />
             ) : (
-              <Menu className="h-6 w-6 text-gray-900" />
+              <Menu className="h-5 w-5 text-foreground" />
             )}
           </Button>
         )}
 
-        {/* Logo Section (f2.md Section 3.2) */}
-        <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-white">FIA</span>
+        <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity shrink-0">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary shadow-sm">
+            <span className="text-base sm:text-lg font-bold text-primary-foreground">FIA</span>
           </div>
-          <span className="text-lg font-semibold text-gray-900 hidden sm:inline">FIA SupTech365</span>
-          <span className="text-lg font-semibold text-gray-900 sm:hidden">FIA</span>
+          <span className="text-base sm:text-lg font-semibold text-foreground hidden sm:inline tracking-tight">SupTech365</span>
+          <span className="text-base font-semibold text-foreground sm:hidden">FIA</span>
         </a>
 
-        {/* Search Section (f2.md Section 3.2) - Hidden on mobile */}
-        <div className="hidden flex-1 max-w-[600px] mx-4 lg:block">
+        <div className="hidden flex-1 max-w-[520px] mx-4 lg:block">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-600" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search reports, subjects, cases..."
-              className="w-full h-10 pl-10 pr-20 bg-gray-50 border-gray-200 rounded-lg focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10"
+              className="w-full h-9 pl-9 pr-20 bg-muted/60 border-border rounded-xl text-sm placeholder:text-muted-foreground focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/50"
             />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-white px-1.5 font-mono text-[10px] font-medium text-gray-600 sm:flex">
-              <span className="text-xs">Ctrl</span>K
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden h-5 select-none items-center gap-0.5 rounded-md border border-border bg-muted/80 px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:flex">
+              <span className="text-xs">⌘</span>K
             </kbd>
           </div>
         </div>
 
-        {/* Right Section (f2.md Section 3.2) */}
-        <div className="flex items-center gap-4">
-          {/* Notifications (f2.md Section 3.2) */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="relative h-10 w-10 rounded-lg hover:bg-gray-100"
-          >
-            <Bell className="h-5 w-5 text-gray-600" />
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-[11px] font-bold bg-error text-white rounded-full flex items-center justify-center border-2 border-white">
-              5
-            </span>
-          </Button>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <NotificationBell />
 
-          {/* User Menu (f2.md Section 3.2) - Avatar only on mobile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2 h-10 hover:bg-gray-100">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary text-white text-sm font-medium">
+              <Button variant="ghost" className="flex items-center gap-2 px-2 h-9 sm:h-10 rounded-xl hover:bg-muted">
+                <Avatar className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm font-medium rounded-lg">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:flex flex-col items-start">
-                  <span className="text-sm font-medium text-gray-900">{user?.name}</span>
+                  <span className="text-sm font-medium text-foreground">{user?.name}</span>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-600 hidden md:block" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuContent align="end" className="w-56 rounded-xl border-border/80 shadow-soft-lg">
               <div className="px-3 py-2">
-                <p className="font-medium text-sm">{user?.name}</p>
-                <p className="text-xs text-gray-600">
+                <p className="font-medium text-sm text-foreground">{user?.name}</p>
+                <p className="text-xs text-muted-foreground">
                   {user?.role ? ROLE_LABELS[user.role] : ""}
                 </p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                My Profile
+              <DropdownMenuItem asChild>
+                <Link to="/profile">
+                  <Settings className="mr-2 h-4 w-4" />
+                  My Profile
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Lock className="mr-2 h-4 w-4" />
@@ -120,7 +117,7 @@ export function TopNav() {
                 Submit Feedback
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>

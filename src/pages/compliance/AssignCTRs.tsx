@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { Users, RefreshCw, UserPlus, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Users, RefreshCw, UserPlus, CheckCircle2, AlertTriangle, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -206,7 +206,7 @@ export default function AssignCTRs() {
             <div className="flex gap-2">
               <Input placeholder="Search by Ref # or Subject..." className="flex-1" />
               <Button variant="outline" size="icon">
-                🔍
+                <Search className="h-4 w-4" />
               </Button>
             </div>
             <Table>

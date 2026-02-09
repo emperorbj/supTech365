@@ -98,7 +98,7 @@ export default function ProcessingMetrics() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-4 text-center">
-              ↓ 35% improvement from baseline (3.5 days → 2.3 days)
+              35% improvement from baseline (3.5 days → 2.3 days)
             </p>
           </CardContent>
         </Card>

@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { FileText, ArrowLeft, Download, CheckCircle2, XCircle, AlertCircle, Clock, User, Calendar } from "lucide-react";
+import { FileText, ArrowLeft, Download, CheckCircle2, XCircle, AlertCircle, Clock, User, Calendar, Check, Circle, ClipboardList, MessageCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge, ReportTypeBadge } from "@/components/ui/StatusBadge";
@@ -280,16 +280,16 @@ export default function SubmissionDetail() {
                       ) : event.current ? (
                         <div className="h-5 w-5 rounded-full border-2 border-primary bg-primary" />
                       ) : (
-                        <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                        <div className="h-5 w-5 rounded-full border-2 border-border" />
                       )}
                       {index < submission.timeline.length - 1 && (
-                        <div className={`w-0.5 h-12 ${event.completed ? "bg-gray-300" : "bg-gray-200"}`} />
+                        <div className={`w-0.5 h-12 ${event.completed ? "bg-muted-foreground/30" : "bg-muted"}`} />
                       )}
                     </div>
                     <div className="flex-1 pb-8">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`font-medium ${event.current ? "text-primary" : ""}`}>
-                          {event.completed ? "✓" : event.current ? "●" : ""} {event.stage}
+                          {event.completed ? <Check className="h-4 w-4 inline shrink-0" /> : event.current ? <Circle className="h-2.5 w-2.5 fill-current inline shrink-0" /> : null} {event.stage}
                         </span>
                         <span className="text-sm text-muted-foreground">{event.timestamp}</span>
                         {event.duration && (
@@ -406,7 +406,7 @@ export default function SubmissionDetail() {
                   {submission.rejectionDetails.errors.map((error) => (
                     <div key={error.id} className="bg-white p-4 rounded-md border border-red-200">
                       <p className="font-medium text-red-900 mb-2">
-                        {error.id}. ❌ {error.type}
+                        <span className="flex items-center gap-1.5">{error.id}. <XCircle className="h-4 w-4 shrink-0 text-destructive" /> {error.type}</span>
                       </p>
                       <div className="space-y-1 text-sm">
                         <p><span className="font-medium">Field:</span> {error.field}</p>
@@ -426,7 +426,7 @@ export default function SubmissionDetail() {
                 <Separator />
 
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-4 space-y-2">
-                  <p className="font-medium">📋 How to Fix</p>
+                  <p className="font-medium flex items-center gap-2"><ClipboardList className="h-4 w-4" /> How to Fix</p>
                   <ol className="text-sm space-y-1 list-decimal list-inside">
                     <li>Download the original submission file below</li>
                     <li>Correct the errors listed above</li>
@@ -435,7 +435,7 @@ export default function SubmissionDetail() {
                     <li>Submit the corrected report as a new submission</li>
                   </ol>
                   <p className="text-sm mt-2">
-                    📄 Need help? View the <Button variant="link" className="p-0 h-auto">STR Template Guide</Button>
+                    <span className="flex items-center gap-1.5"><FileText className="h-4 w-4 shrink-0" /> Need help? View the <Button variant="link" className="p-0 h-auto">STR Template Guide</Button></span>
                   </p>
                 </div>
               </CardContent>
@@ -538,19 +538,20 @@ export default function SubmissionDetail() {
                 )}
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                  <p className="text-sm font-medium">⏱️ Deadline: {submission.correctionDetails.deadline}</p>
+                  <p className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4 shrink-0" /> Deadline: {submission.correctionDetails.deadline}</p>
                 </div>
 
                 {submission.submissionMethod === "API Integration" && (
                   <div className="flex gap-2">
-                    <Button variant="link" className="p-0 h-auto">📄 API Documentation</Button>
-                    <Button variant="link" className="p-0 h-auto">💬 Contact Tech Support</Button>
+                    <Button variant="link" className="p-0 h-auto"><FileText className="h-3.5 w-3.5 inline mr-1" /> API Documentation</Button>
+                    <Button variant="link" className="p-0 h-auto"><MessageCircle className="h-3.5 w-3.5 inline mr-1" /> Contact Tech Support</Button>
                   </div>
                 )}
 
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                  <p className="text-sm">
-                    ℹ️ Note: API resubmissions should be sent to the standard submission endpoint with updated data. 
+                  <p className="text-sm flex items-start gap-2">
+                    <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                    Note: API resubmissions should be sent to the standard submission endpoint with updated data. 
                     The original reference number will be automatically linked.
                   </p>
                 </div>
@@ -617,7 +618,7 @@ export default function SubmissionDetail() {
         {/* Info Note */}
         {submission.status !== "rejected" && submission.status !== "returned" && (
           <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <p className="text-sm">ℹ️ Note: You will be notified when the status changes.</p>
+            <p className="text-sm flex items-center gap-2"><Info className="h-4 w-4 shrink-0" /> Note: You will be notified when the status changes.</p>
           </div>
         )}
       </div>

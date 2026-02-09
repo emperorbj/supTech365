@@ -21,6 +21,8 @@ import {
   UserPlus,
   RotateCcw,
   TrendingUp,
+  Home,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,10 +46,17 @@ interface NavSection {
   items: NavItem[];
 }
 
+const HOME_SECTION: NavSection = {
+  label: "Main",
+  items: [{ title: "Home", href: "/", icon: Home }],
+};
+
+const withHome = (sections: NavSection[]) => [HOME_SECTION, ...sections];
+
 export const getNavigationByRole = (role: UserRole): NavSection[] => {
   switch (role) {
     case "reporting_entity":
-      return [
+      return withHome([
         {
           label: "Reporting",
           items: [
@@ -57,14 +66,19 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
             { title: "Statistics", href: "/statistics", icon: BarChart3 },
           ],
         },
-      ];
+      ]);
     case "compliance_officer":
     case "head_of_compliance":
-      return [
+      return withHome([
         {
           label: "My Work",
           items: [
+            ...(role === "compliance_officer"
+              ? [{ title: "My Assignments", href: "/my-assignments", icon: ClipboardList }]
+              : []),
             { title: "Validation Queue", href: "/compliance/validation", icon: FileCheck, badge: 8 },
+            { title: "Manual Validation Queue", href: "/compliance/validation-queue", icon: Inbox },
+            { title: "Validation Audit Logs", href: "/compliance/validation-audit-logs", icon: Shield },
             { title: "CTR Review", href: "/compliance/ctr-review", icon: FileText, badge: 15 },
             { title: "Alerts", href: "/compliance/alerts/active", icon: AlertTriangle, badge: 3, badgeVariant: "critical" },
           ],
@@ -80,7 +94,8 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
               {
                 label: "Management",
                 items: [
-                  { title: "Team Workload", href: "/compliance/workload/dashboard", icon: Users },
+                  { title: "Assignment Queue", href: "/supervisor/assignment-queue", icon: ClipboardList },
+                  { title: "Team Workload", href: "/supervisor/workload", icon: Users },
                   { title: "Pending Validations", href: "/compliance/validation/pending", icon: Inbox, badge: 3, badgeVariant: "warning" as const },
                   { title: "Assign Validations", href: "/compliance/validation/assign", icon: UserPlus },
                   { title: "Escalations", href: "/compliance/escalation/pending", icon: TrendingUp, badge: 4, badgeVariant: "warning" as const },
@@ -88,13 +103,16 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
               },
             ]
           : []),
-      ];
+      ]);
     case "analyst":
     case "head_of_analysis":
-      return [
+      return withHome([
         {
           label: "Analysis",
           items: [
+            ...(role === "analyst"
+              ? [{ title: "My Assignments", href: "/my-assignments", icon: ClipboardList }]
+              : []),
             { title: "My Queue", href: "/analysis-queue", icon: Inbox, badge: 6 },
             { title: "Subject Profiles", href: "/subjects", icon: Users },
             { title: "Alerts", href: "/analysis-alerts", icon: AlertTriangle, badge: 2, badgeVariant: "critical" },
@@ -107,10 +125,21 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
             { title: "Intelligence", href: "/intelligence", icon: Send },
           ],
         },
-      ];
+        ...(role === "head_of_analysis"
+          ? [
+              {
+                label: "Management",
+                items: [
+                  { title: "Assignment Queue", href: "/supervisor/assignment-queue", icon: ClipboardList },
+                  { title: "Team Workload", href: "/supervisor/workload", icon: Users },
+                ],
+              },
+            ]
+          : []),
+      ]);
     case "director_ops":
     case "oic":
-      return [
+      return withHome([
         {
           label: "Oversight",
           items: [
@@ -126,10 +155,9 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
             { title: "System Metrics", href: "/metrics", icon: TrendingUp },
           ],
         },
-      ];
+      ]);
     case "tech_admin":
-    case "super_admin":
-      return [
+      return withHome([
         {
           label: "Administration",
           items: [
@@ -137,11 +165,47 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
             { title: "Entities", href: "/entities", icon: FileText },
             { title: "Register Entity", href: "/admin/entities/register", icon: UserPlus },
             { title: "Create User", href: "/admin/users/create", icon: UserPlus },
+            { title: "Active Sessions", href: "/sessions", icon: Shield },
             { title: "Security", href: "/security", icon: Shield },
             { title: "System Config", href: "/config", icon: Settings },
           ],
         },
-      ];
+      ]);
+    case "super_admin":
+      return withHome([
+        {
+          label: "Reporting",
+          items: [
+            { title: "Submit Report", href: "/submit", icon: Upload },
+            { title: "My Submissions", href: "/submissions", icon: FileText },
+            { title: "Resubmissions", href: "/resubmissions", icon: RotateCcw },
+            { title: "Statistics", href: "/statistics", icon: BarChart3 },
+          ],
+        },
+        {
+          label: "Compliance & Validation",
+          items: [
+            { title: "Assignment Queue", href: "/supervisor/assignment-queue", icon: ClipboardList },
+            { title: "Team Workload", href: "/supervisor/workload", icon: Users },
+            { title: "Validation Queue", href: "/compliance/validation", icon: FileCheck },
+            { title: "Manual Validation Queue", href: "/compliance/validation-queue", icon: Inbox },
+            { title: "Validation Audit Logs", href: "/compliance/validation-audit-logs", icon: Shield },
+            { title: "CTR Review", href: "/compliance/ctr-review", icon: FileText },
+          ],
+        },
+        {
+          label: "Administration",
+          items: [
+            { title: "User Management", href: "/users", icon: Users },
+            { title: "Entities", href: "/entities", icon: FileText },
+            { title: "Register Entity", href: "/admin/entities/register", icon: UserPlus },
+            { title: "Create User", href: "/admin/users/create", icon: UserPlus },
+            { title: "Active Sessions", href: "/sessions", icon: Shield },
+            { title: "Security", href: "/security", icon: Shield },
+            { title: "System Config", href: "/config", icon: Settings },
+          ],
+        },
+      ]);
     default:
       return [];
   }
@@ -163,47 +227,39 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] border-r border-gray-200 bg-white transition-all duration-200",
+        "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] border-r border-sidebar-border bg-sidebar transition-all duration-200",
         isCollapsed ? "w-16" : "w-60"
       )}
     >
       <div className="flex h-full flex-col">
-        {/* Navigation Sections (f2.md Section 3.3) */}
         <nav className="flex-1 overflow-y-auto py-4">
           {navigation.map((section, sectionIndex) => (
             <div key={section.label} className={cn(sectionIndex > 0 && "mt-4")}>
               {!isCollapsed && (
-                <div className="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <div className="nav-section-label px-4">
                   {section.label}
                 </div>
               )}
               {isCollapsed && sectionIndex > 0 && (
-                <div className="mx-3 my-2 h-px bg-gray-200" />
+                <div className="mx-3 my-2 h-px bg-sidebar-border" />
               )}
               <div className="space-y-1">
                 {section.items.map((item) => {
-                  // Check exact match first
                   let isActive = location.pathname === item.href;
-                  
-                  // For parent routes, check if path starts with href + "/" 
-                  // but exclude routes that have their own nav items in the same section
                   if (!isActive && location.pathname.startsWith(item.href + "/")) {
-                    // Get all hrefs from all sections to check if current path is a direct nav item
                     const allNavHrefs = navigation.flatMap(section => section.items.map(i => i.href));
-                    // Only highlight parent if current path is not exactly another nav item
                     isActive = !allNavHrefs.includes(location.pathname);
                   }
-                  
                   const Icon = item.icon;
 
                   const navButton = (
                     <Link
                       to={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-2.5 mx-2 rounded-md text-sm transition-all duration-150 min-h-[40px]",
+                        "flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm transition-all duration-150 min-h-[40px]",
                         isActive
-                          ? "bg-primary-light text-white font-medium"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-sm"
+                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
                         isCollapsed && "justify-center px-0 mx-2"
                       )}
                     >
@@ -218,8 +274,8 @@ export function Sidebar() {
                                 item.badgeVariant === "critical" && "bg-risk-critical text-white",
                                 item.badgeVariant === "warning" && "bg-warning text-white",
                                 (!item.badgeVariant || item.badgeVariant === "info") &&
-                                  "bg-primary-light text-white",
-                                isActive && "bg-white/20 text-white"
+                                  "bg-sidebar-primary text-sidebar-primary-foreground",
+                                isActive && "bg-sidebar-primary-foreground/20 text-sidebar-primary-foreground"
                               )}
                             >
                               {item.badge > 99 ? "99+" : item.badge}
@@ -237,7 +293,7 @@ export function Sidebar() {
                     return (
                       <Tooltip key={item.href} delayDuration={300}>
                         <TooltipTrigger asChild>{navButton}</TooltipTrigger>
-                        <TooltipContent side="right" className="flex items-center gap-2 bg-gray-900 text-white px-3 py-2 rounded-md text-sm">
+                        <TooltipContent side="right" className="flex items-center gap-2 bg-sidebar border border-sidebar-border text-sidebar-foreground px-3 py-2 rounded-lg text-sm">
                           {item.title}
                           {item.badge !== undefined && (
                             <span
@@ -246,7 +302,7 @@ export function Sidebar() {
                                 item.badgeVariant === "critical" && "bg-risk-critical text-white",
                                 item.badgeVariant === "warning" && "bg-warning text-white",
                                 (!item.badgeVariant || item.badgeVariant === "info") &&
-                                  "bg-primary-light text-white"
+                                  "bg-sidebar-primary text-sidebar-primary-foreground"
                               )}
                             >
                               {item.badge}
@@ -264,12 +320,11 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* Help & Collapse Toggle (f2.md Section 3.3) */}
-        <div className="border-t border-gray-200 p-3 sticky bottom-0 bg-white">
+        <div className="border-t border-sidebar-border p-3 sticky bottom-0 bg-sidebar">
           {!isCollapsed && (
-            <Link 
-              to="/help" 
-              className="flex items-center gap-3 px-4 py-2.5 mx-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-150 min-h-[40px] mb-2"
+            <Link
+              to="/help"
+              className="flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-150 min-h-[40px] mb-2"
             >
               <HelpCircle className="h-5 w-5" strokeWidth={2} />
               <span>Help & Support</span>
@@ -279,14 +334,14 @@ export function Sidebar() {
             <div className="mb-2">
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
-                  <Link 
-                    to="/help" 
-                    className="flex items-center justify-center h-10 w-10 mx-auto rounded-md text-gray-600 hover:bg-gray-100 transition-all duration-150"
+                  <Link
+                    to="/help"
+                    className="flex items-center justify-center h-10 w-10 mx-auto rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-all duration-150"
                   >
                     <HelpCircle className="h-5 w-5" strokeWidth={2} />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent side="right" className="bg-gray-900 text-white px-3 py-2 rounded-md text-sm">
+                <TooltipContent side="right" className="bg-sidebar border border-sidebar-border text-sidebar-foreground px-3 py-2 rounded-lg text-sm">
                   Help & Support
                 </TooltipContent>
               </Tooltip>
@@ -295,7 +350,7 @@ export function Sidebar() {
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={cn(
-              "flex items-center gap-3 px-4 py-2.5 mx-2 rounded-md text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all duration-150 min-h-[40px] w-full",
+              "flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-150 min-h-[40px] w-full",
               isCollapsed && "justify-center px-0"
             )}
           >

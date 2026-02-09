@@ -15,12 +15,12 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <TopNav />
       <MobileNav />
       <div className="flex w-full pt-16">
         <Sidebar />
-        <main 
+        <main
           className={cn(
             "flex-1 min-h-[calc(100vh-4rem)] transition-all duration-200",
             isMobile ? "ml-0" : isCollapsed ? "ml-16" : "ml-60"

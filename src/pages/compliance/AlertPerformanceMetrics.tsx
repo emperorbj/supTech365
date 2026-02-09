@@ -96,7 +96,7 @@ export default function AlertPerformanceMetrics() {
                 <span>Structuring Pattern</span>
                 <span className="font-medium">15 alerts</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-blue-600 h-4 rounded-full" style={{ width: "75%" }}></div>
               </div>
             </div>
@@ -105,7 +105,7 @@ export default function AlertPerformanceMetrics() {
                 <span>Threshold Proximity</span>
                 <span className="font-medium">18 alerts</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-blue-600 h-4 rounded-full" style={{ width: "90%" }}></div>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function AlertPerformanceMetrics() {
                 <span>High Frequency CTR</span>
                 <span className="font-medium">8 alerts</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-blue-600 h-4 rounded-full" style={{ width: "40%" }}></div>
               </div>
             </div>
@@ -123,7 +123,7 @@ export default function AlertPerformanceMetrics() {
                 <span>High-Risk Jurisdiction</span>
                 <span className="font-medium">4 alerts</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-blue-600 h-4 rounded-full" style={{ width: "20%" }}></div>
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function AlertPerformanceMetrics() {
                 <span>Large Business Cash</span>
                 <span className="font-medium">3 alerts</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-blue-600 h-4 rounded-full" style={{ width: "15%" }}></div>
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function AlertPerformanceMetrics() {
                 <span>High-Risk Jurisdiction</span>
                 <span className="font-medium">90% (4/4)</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-green-600 h-4 rounded-full" style={{ width: "90%" }}></div>
               </div>
             </div>
@@ -158,7 +158,7 @@ export default function AlertPerformanceMetrics() {
                 <span>Structuring Pattern</span>
                 <span className="font-medium">80% (12/15)</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-green-600 h-4 rounded-full" style={{ width: "80%" }}></div>
               </div>
             </div>
@@ -167,7 +167,7 @@ export default function AlertPerformanceMetrics() {
                 <span>High Frequency CTR</span>
                 <span className="font-medium">75% (6/8)</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-muted rounded-full h-4">
                 <div className="bg-green-600 h-4 rounded-full" style={{ width: "75%" }}></div>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function AlertPerformanceMetrics() {
             </div>
             <div className="flex justify-between text-sm font-medium">
               <span>Week 4:</span>
-              <span>10 alerts | TP: 80% | FP: 20% ↑ Improving</span>
+              <span className="inline-flex items-center gap-1">10 alerts | TP: 80% | FP: 20% <TrendingUp className="h-4 w-4 text-workflow-validated shrink-0" /> Improving</span>
             </div>
           </CardContent>
         </Card>

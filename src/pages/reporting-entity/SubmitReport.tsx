@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { Upload, FileText, Download, Link2, CheckCircle2, X } from "lucide-react";
+import { Upload, FileText, Download, Link2, CheckCircle2, X, Info, Mail, BarChart3, ClipboardList, Eye, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -10,15 +11,25 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { submitExcelReport, ApiError } from "@/lib/api";
+import { toast } from "sonner";
+
+const MAX_FILE_SIZE_MB = 10;
+
+type ReportTypeOption = "STR" | "CTR" | "Monthly" | "Quarterly";
 
 export default function SubmitReport() {
-  const [reportType, setReportType] = useState<"STR" | "CTR">("STR");
+  const navigate = useNavigate();
+  const [reportType, setReportType] = useState<ReportTypeOption>("STR");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success">("idle");
   const [successRefNumber, setSuccessRefNumber] = useState("");
+  const [successTimestamp, setSuccessTimestamp] = useState("");
   const [apiStatusDialogOpen, setApiStatusDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [entityReference, setEntityReference] = useState("");
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const breadcrumbItems = [
     { label: "Reporting Entity Workspace", icon: <FileText className="h-5 w-5" /> },
@@ -28,7 +39,18 @@ export default function SubmitReport() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        toast.error(`File must be under ${MAX_FILE_SIZE_MB}MB`);
+        e.target.value = "";
+        return;
+      }
+      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+        toast.error("Please select an Excel file (.xlsx or .xls)");
+        e.target.value = "";
+        return;
+      }
       setSelectedFile(file);
+      setUploadError(null);
     }
   };
 
@@ -41,31 +63,43 @@ export default function SubmitReport() {
     e.preventDefault();
     e.stopPropagation();
     const file = e.dataTransfer.files[0];
-    if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
-      setSelectedFile(file);
+    if (file) {
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        toast.error(`File must be under ${MAX_FILE_SIZE_MB}MB`);
+        return;
+      }
+      if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+        setSelectedFile(file);
+        setUploadError(null);
+      }
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!selectedFile) return;
-    
-    setUploadStatus("uploading");
-    setUploadProgress(0);
 
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setUploadStatus("success");
-            setSuccessRefNumber(`FIA-2026-${Math.floor(Math.random() * 9000) + 1000}`);
-          }, 500);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
+    setUploadError(null);
+    setUploadStatus("uploading");
+    setUploadProgress(20);
+
+    try {
+      const res = await submitExcelReport(
+        selectedFile,
+        reportType,
+        entityReference.trim() || undefined
+      );
+      setUploadProgress(100);
+      setSuccessRefNumber(res.reference);
+      setSuccessTimestamp(res.timestamp || new Date().toISOString());
+      setUploadStatus("success");
+      toast.success(res.message || "Report submitted successfully.");
+    } catch (err) {
+      setUploadStatus("idle");
+      setUploadProgress(0);
+      const message = err instanceof ApiError ? err.message : "Upload failed. Please try again.";
+      setUploadError(message);
+      toast.error(message);
+    }
   };
 
   const handleUploadComplete = () => {
@@ -74,6 +108,8 @@ export default function SubmitReport() {
     setUploadProgress(0);
     setSelectedFile(null);
     setSuccessRefNumber("");
+    setSuccessTimestamp("");
+    setUploadError(null);
   };
 
   return (
@@ -96,7 +132,7 @@ export default function SubmitReport() {
             {/* Report Type Selection */}
             <div className="space-y-3">
               <Label className="text-base font-medium">Select Report Type:</Label>
-              <RadioGroup value={reportType} onValueChange={(value) => setReportType(value as "STR" | "CTR")}>
+              <RadioGroup value={reportType} onValueChange={(value) => setReportType(value as ReportTypeOption)}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="STR" id="str" />
                   <Label htmlFor="str" className="font-normal cursor-pointer">
@@ -107,6 +143,18 @@ export default function SubmitReport() {
                   <RadioGroupItem value="CTR" id="ctr" />
                   <Label htmlFor="ctr" className="font-normal cursor-pointer">
                     CTR (Currency Transaction Report)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Monthly" id="monthly" />
+                  <Label htmlFor="monthly" className="font-normal cursor-pointer">
+                    Monthly (Monthly compliance report)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Quarterly" id="quarterly" />
+                  <Label htmlFor="quarterly" className="font-normal cursor-pointer">
+                    Quarterly (Quarterly compliance report)
                   </Label>
                 </div>
               </RadioGroup>
@@ -197,8 +245,8 @@ export default function SubmitReport() {
 
         {/* Upload Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="shrink-0">
               <DialogTitle>
                 {uploadStatus === "uploading" ? "Uploading Report..." : 
                  uploadStatus === "success" ? "Report Submitted Successfully" : 
@@ -206,12 +254,22 @@ export default function SubmitReport() {
               </DialogTitle>
             </DialogHeader>
 
+            <div className="overflow-y-auto flex-1 min-h-0 -mx-6 px-6">
             {uploadStatus === "idle" && (
               <>
                 <DialogDescription>
-                  Report Type: {reportType === "STR" ? "STR (Suspicious Transaction Report)" : "CTR (Currency Transaction Report)"}
+                  Report Type: {reportType === "STR" ? "STR (Suspicious Transaction Report)" : reportType === "CTR" ? "CTR (Currency Transaction Report)" : reportType === "Monthly" ? "Monthly compliance report" : "Quarterly compliance report"}
                 </DialogDescription>
                 <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="entity-reference">Entity reference (optional)</Label>
+                    <Input
+                      id="entity-reference"
+                      placeholder="Internal reference for tracking"
+                      value={entityReference}
+                      onChange={(e) => setEntityReference(e.target.value)}
+                    />
+                  </div>
                   <div
                     className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:border-primary transition-colors"
                     onDragOver={handleDragOver}
@@ -230,10 +288,16 @@ export default function SubmitReport() {
                       onChange={handleFileSelect}
                     />
                     <p className="text-xs text-muted-foreground mt-4">
-                      Accepted formats: .xlsx, .xls<br />
-                      Maximum file size: 25MB
+                      Accepted formats: .xlsx (Excel 2007+)<br />
+                      Maximum file size: {MAX_FILE_SIZE_MB}MB
                     </p>
                   </div>
+
+                  {uploadError && (
+                    <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+                      {uploadError}
+                    </div>
+                  )}
 
                   {selectedFile && (
                     <div className="bg-muted p-3 rounded-md">
@@ -243,7 +307,7 @@ export default function SubmitReport() {
                   )}
 
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-4 space-y-2">
-                    <p className="text-sm font-medium">ℹ️ Important Notes:</p>
+                    <p className="text-sm font-medium flex items-center gap-2"><Info className="h-4 w-4 shrink-0" /> Important Notes:</p>
                     <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                       <li>Ensure all mandatory fields are completed</li>
                       <li>Use the latest template version (2.0)</li>
@@ -289,20 +353,14 @@ export default function SubmitReport() {
                 <div className="space-y-2 bg-muted p-4 rounded-md">
                   <p><span className="font-medium">Reference Number:</span> {successRefNumber}</p>
                   <p><span className="font-medium">Report Type:</span> {reportType}</p>
-                  <p><span className="font-medium">Submitted:</span> {new Date().toLocaleString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}</p>
+                  <p><span className="font-medium">Submitted:</span> {successTimestamp ? new Date(successTimestamp).toLocaleString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
                   <p><span className="font-medium">Status:</span> Submitted - Awaiting Validation</p>
                 </div>
 
                 <Separator />
 
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">📧 A confirmation email has been sent to:</p>
+                  <p className="text-sm font-medium flex items-center gap-2"><Mail className="h-4 w-4 shrink-0" /> A confirmation email has been sent to:</p>
                   <p className="text-sm text-muted-foreground">compliance@bankofmonrovia.lr</p>
                 </div>
 
@@ -319,12 +377,18 @@ export default function SubmitReport() {
                   <Button variant="outline" onClick={handleUploadComplete}>
                     Submit Another
                   </Button>
-                  <Button onClick={handleUploadComplete}>
-                    View Submission
+                  <Button
+                    onClick={() => {
+                      handleUploadComplete();
+                      navigate("/submissions");
+                    }}
+                  >
+                    View Submissions
                   </Button>
                 </div>
               </div>
             )}
+            </div>
           </DialogContent>
         </Dialog>
 
@@ -359,7 +423,7 @@ export default function SubmitReport() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">📊 Recent API Activity (Last 7 Days)</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Recent API Activity (Last 7 Days)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
@@ -396,7 +460,7 @@ export default function SubmitReport() {
               </Card>
 
               <div className="space-y-2">
-                <p className="font-medium">📋 API Credentials</p>
+                <p className="font-medium flex items-center gap-2"><ClipboardList className="h-4 w-4" /> API Credentials</p>
                 <div className="bg-muted p-3 rounded-md space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">API Key:</span>
@@ -411,14 +475,14 @@ export default function SubmitReport() {
               </div>
 
               <div className="space-y-2">
-                <p className="font-medium">📄 Documentation:</p>
+                <p className="font-medium flex items-center gap-2"><FileText className="h-4 w-4" /> Documentation:</p>
                 <Button variant="link" className="p-0 h-auto">
                   View API Documentation
                 </Button>
               </div>
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                <p className="text-sm font-medium mb-1">⚠️ Need Help?</p>
+                <p className="text-sm font-medium mb-1 flex items-center gap-2"><AlertTriangle className="h-4 w-4 shrink-0" /> Need Help?</p>
                 <p className="text-xs text-muted-foreground">
                   Contact FIA Technical Support: tech-support@fia.gov.lr
                 </p>

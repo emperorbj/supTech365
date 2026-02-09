@@ -96,10 +96,10 @@ export default function CreateUser() {
     if (role === "reporting_entity") {
       setIsLoadingEntities(true);
       registrationApi
-        .getEntities("active")
+        .getEntities({ limit: 500 })
         .then((response) => {
           setEntities(
-            response.entities.map((e) => ({
+            (response.data || []).map((e) => ({
               id: e.id,
               name: e.name,
             }))

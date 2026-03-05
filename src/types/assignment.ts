@@ -81,4 +81,6 @@ export interface MyAssignmentFilters {
 export interface NotificationFilters {
   is_read?: boolean;
   date_range?: "today" | "this_week" | "this_month";
+  page?: number;
+  page_size?: number;
 }

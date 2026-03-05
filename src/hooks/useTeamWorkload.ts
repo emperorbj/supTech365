@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import * as assignmentApi from "@/lib/assignmentApi";
+import { taskApi } from "@/lib/api";
 
 export function useOfficerWorkload(teamId?: string) {
   return useQuery({
     queryKey: ["workload", "officers", teamId],
-    queryFn: () => assignmentApi.getOfficerWorkloads(teamId),
+    queryFn: () => taskApi.getOfficerWorkloads(teamId),
     staleTime: 60 * 1000,
   });
 }
@@ -12,7 +12,7 @@ export function useOfficerWorkload(teamId?: string) {
 export function useAnalystWorkload() {
   return useQuery({
     queryKey: ["workload", "analysts"],
-    queryFn: () => assignmentApi.getAnalystWorkloads(),
+    queryFn: () => taskApi.getAnalystWorkloads(),
     staleTime: 60 * 1000,
   });
 }

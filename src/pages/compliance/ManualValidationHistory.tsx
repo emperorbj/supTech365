@@ -48,7 +48,7 @@ export default function ManualValidationHistory() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchManualValidationHistory(page, pageSize);
+      const data = await fetchManualValidationHistory(page, pageSize, { report_type: "CTR" });
       setItems(data.items || []);
       setTotal(data.total || 0);
     } catch (err: any) {

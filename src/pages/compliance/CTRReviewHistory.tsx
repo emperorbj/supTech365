@@ -48,7 +48,7 @@ export default function CTRReviewHistory() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchReviewHistory(page, pageSize);
+      const data = await fetchReviewHistory(page, pageSize, { report_type: "CTR" });
       setItems(data.items || []);
       setTotal(data.total || 0);
     } catch (err: any) {

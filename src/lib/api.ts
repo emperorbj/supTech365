@@ -109,6 +109,23 @@ export function getValidationErrors(err: ApiError): ValidationErrorItem[] | null
     .map((e) => ({ field: (e as any).field, message: (e as any).message, type: (e as any).type }));
 }
 
+/** Map API error to a short, user-friendly message for display in the UI. */
+export function getFriendlyErrorMessage(err: ApiError): string {
+  if (err.code === "VALIDATION_ERROR") {
+    return "Please fix the errors in the form and try again.";
+  }
+  const friendly: Record<string, string> = {
+    UNAUTHORIZED: "Please sign in again.",
+    FORBIDDEN: "You don't have permission to do this.",
+    NOT_FOUND: "The requested item was not found.",
+    CONFLICT: "This conflicts with existing data. Please check and try again.",
+    BAD_REQUEST: "Invalid request. Please check your input.",
+    SERVER_ERROR: "Something went wrong on our side. Please try again later.",
+    NETWORK_ERROR: "Unable to connect. Check your connection and try again.",
+  };
+  return friendly[err.code] || err.message || "Something went wrong. Please try again.";
+}
+
 /** Parse API error body into code and message. Handles { success: false, error: { code, message, details } }, detail, etc. */
 function parseErrorBody(
   body: unknown,
@@ -134,16 +151,18 @@ function parseErrorBody(
       }
       return { code, message };
     }
-    // Top-level code/message
+    // Top-level code/message (many APIs use "detail" e.g. 400/403/413)
     const code = typeof b.code === "string" ? b.code : "UNKNOWN_ERROR";
-    const message =
-      typeof b.message === "string"
-        ? b.message
-        : status === 422 && b.detail
-          ? Array.isArray(b.detail)
-            ? parse422Detail(b.detail).message
-            : String(b.detail)
-          : fallbackMessage;
+    let message = typeof b.message === "string" ? b.message : fallbackMessage;
+    if (message === fallbackMessage && b.detail != null) {
+      if (typeof b.detail === "string") {
+        message = b.detail;
+      } else if (status === 422 && Array.isArray(b.detail)) {
+        message = parse422Detail(b.detail).message;
+      } else if (status === 422) {
+        message = String(b.detail);
+      }
+    }
     return { code, message };
   }
   return { code: "UNKNOWN_ERROR", message: fallbackMessage };
@@ -379,6 +398,8 @@ export interface RegisterEntityPayload {
   username: string;
   email: string;
   password: string;
+  /** If true, issue API credentials for the entity. */
+  issue_api_credentials?: boolean;
 }
 
 export interface RegisterEntityResponse {
@@ -442,17 +463,16 @@ const REGISTER_ENTITY_KEYS: (keyof RegisterEntityPayload)[] = [
   "username",
   "email",
   "password",
+  "issue_api_credentials",
 ];
 
 export const registrationApi = {
   registerEntity: async (payload: RegisterEntityPayload): Promise<RegisterEntityResponse> => {
-    const body = REGISTER_ENTITY_KEYS.reduce(
-      (acc, key) => {
-        acc[key] = payload[key];
-        return acc;
-      },
-      {} as RegisterEntityPayload
-    );
+    const body: Record<string, unknown> = {};
+    for (const key of REGISTER_ENTITY_KEYS) {
+      const v = payload[key];
+      if (v !== undefined) body[key] = v;
+    }
     return apiRequest<RegisterEntityResponse>("/api/v1/admin/entities/register", {
       method: "POST",
       body: JSON.stringify(body),
@@ -531,12 +551,31 @@ export interface EntityApiKey {
   entity_name?: string;
   key_name: string;
   key_prefix?: string;
+  /** Only present once when key is created; never in list responses. */
+  api_key?: string;
   is_active: boolean;
   created_at: string;
+  created_by_id?: string | null;
   last_used_at?: string | null;
   expires_at?: string | null;
   revoked_at?: string | null;
+  revoked_by_id?: string | null;
   revocation_reason?: string | null;
+}
+
+/** Response from GET /api/v1/admin/api-keys (list all with pagination). */
+export interface AdminApiKeysListResponse {
+  items: EntityApiKey[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+/** Payload for POST /api/v1/admin/api-keys (create API key). */
+export interface CreateAdminApiKeyPayload {
+  entity_id: string;
+  key_name: string;
+  expires_in_days?: number;
 }
 
 /** API for reporting entity users: update own entity, list users, list API keys. (No GET entity - admin only.) */
@@ -667,6 +706,32 @@ export interface AssignRoleResponse {
   success: boolean;
 }
 
+/** Request for POST /api/v1/admin/roles/bulk-assign */
+export interface BulkAssignRolePayload {
+  user_ids: string[];
+  role_name: string;
+}
+
+/** Single result item in bulk assign response */
+export interface BulkAssignRoleResultItem {
+  user_id: string;
+  username: string;
+  old_role: string;
+  new_role: string;
+  message: string;
+  success: boolean;
+}
+
+/** Response from POST /api/v1/admin/roles/bulk-assign */
+export interface BulkAssignRoleResponse {
+  total_users: number;
+  successful_assignments: number;
+  failed_assignments: number;
+  role_name: string;
+  results: BulkAssignRoleResultItem[];
+  message: string;
+}
+
 export const adminApi = {
   createEntityUser: async (payload: CreateEntityUserPayload): Promise<CreateEntityUserResponse> => {
     return apiRequest<CreateEntityUserResponse>("/api/v1/admin/users/create", {
@@ -735,6 +800,61 @@ export const adminApi = {
       body: JSON.stringify(payload),
     });
   },
+
+  /** POST /api/v1/admin/roles/bulk-assign - Assign a role to multiple users at once. */
+  bulkAssignRole: async (payload: BulkAssignRolePayload): Promise<BulkAssignRoleResponse> => {
+    return apiRequest<BulkAssignRoleResponse>("/api/v1/admin/roles/bulk-assign", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // --- Admin API Keys (SUPER_ADMIN / TECH_ADMIN) ---
+
+  /** GET /api/v1/admin/entities/{entity_id}/api-keys - Get API keys for a specific entity. */
+  getEntityApiKeys: async (entityId: string, includeRevoked?: boolean): Promise<EntityApiKey[]> => {
+    const qs = includeRevoked === true ? "?include_revoked=true" : "";
+    const result = await apiRequest<EntityApiKey[] | unknown>(
+      `/api/v1/admin/entities/${encodeURIComponent(entityId)}/api-keys${qs}`,
+      { method: "GET" }
+    );
+    return Array.isArray(result) ? result : [];
+  },
+
+  /** GET /api/v1/admin/api-keys - Get all API keys with pagination and optional filters. */
+  getAllApiKeys: async (params?: {
+    page?: number;
+    page_size?: number;
+    entity_id?: string | null;
+    is_active?: boolean | null;
+  }): Promise<AdminApiKeysListResponse> => {
+    const search = new URLSearchParams();
+    if (params?.page != null) search.set("page", String(params.page));
+    if (params?.page_size != null) search.set("page_size", String(params.page_size));
+    if (params?.entity_id != null && params.entity_id !== "") search.set("entity_id", params.entity_id);
+    if (params?.is_active != null) search.set("is_active", String(params.is_active));
+    const qs = search.toString();
+    return apiRequest<AdminApiKeysListResponse>(
+      `/api/v1/admin/api-keys${qs ? `?${qs}` : ""}`,
+      { method: "GET" }
+    );
+  },
+
+  /** POST /api/v1/admin/api-keys - Create API key. api_key is only returned once! */
+  createApiKey: async (payload: CreateAdminApiKeyPayload): Promise<EntityApiKey> => {
+    return apiRequest<EntityApiKey>("/api/v1/admin/api-keys", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /** DELETE /api/v1/admin/api-keys/{api_key_id} - Revoke an API key. */
+  revokeApiKey: async (apiKeyId: string, reason?: string): Promise<EntityApiKey> => {
+    return apiRequest<EntityApiKey>(`/api/v1/admin/api-keys/${encodeURIComponent(apiKeyId)}`, {
+      method: "DELETE",
+      body: JSON.stringify(reason != null && reason !== "" ? { reason } : {}),
+    });
+  },
 };
 
 // --- Submission API (Excel upload) ---
@@ -795,13 +915,320 @@ export async function submitExcelReport(
       typeof body === "object" && body !== null
         ? parseErrorBody(body, response.status, fallback)
         : { code: "SUBMISSION_ERROR", message: response.statusText || fallback };
+    const statusCode =
+      response.status === 401
+        ? "UNAUTHORIZED"
+        : response.status === 403
+          ? "FORBIDDEN"
+          : response.status === 413
+            ? "FILE_TOO_LARGE"
+            : response.status === 422
+              ? "VALIDATION_ERROR"
+              : response.status === 400
+                ? "BAD_REQUEST"
+                : parsed.code;
+    throw new ApiError(statusCode, parsed.message, response.status, body);
+  }
+
+  return body as ExcelSubmissionResponse;
+}
+
+// --- Submission API (reporting entity): templates, list, status, recent ---
+
+export type SubmissionReportType = "STR" | "CTR" | "Monthly" | "Quarterly";
+
+export interface SubmissionStatusResponse {
+  reference: string;
+  status: string;
+  report_type: string;
+  submitted_at: string;
+  last_updated_at?: string;
+  entity_report_id?: string;
+  notes?: string;
+}
+
+export interface SubmissionListItem {
+  reference: string;
+  status: string;
+  report_type: string;
+  submitted_at: string;
+  entity_report_id?: string;
+  /** Admin list: current stage label */
+  current_stage?: string;
+  /** Admin list: excel or api */
+  submission_method?: string;
+  /** Admin list: entity reference */
+  entity_reference?: string | null;
+}
+
+export interface ListSubmissionsResponse {
+  submissions: SubmissionListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages?: number;
+  has_more?: boolean;
+}
+
+export interface ListSubmissionsParams {
+  status?: string;
+  report_type?: string;
+  start_date?: string;
+  end_date?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+/** GET /api/v1/submission/templates/{report_type} - Download Excel template (STR or CTR). Triggers browser download. */
+export async function downloadSubmissionTemplate(
+  reportType: "STR" | "CTR"
+): Promise<void> {
+  const token = getStoredToken();
+  if (!token) {
+    throw new ApiError("UNAUTHORIZED", "Authentication required", 401);
+  }
+  const url = `${API_BASE_URL}/api/v1/submission/templates/${encodeURIComponent(reportType)}`;
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "omit",
+  });
+
+  if (!response.ok) {
+    const ct = response.headers.get("content-type") || "";
+    const body = ct.includes("application/json")
+      ? await response.json().catch(() => ({}))
+      : await response.text();
+    const message =
+      typeof body === "object" && body !== null && "detail" in body
+        ? String((body as { detail?: unknown }).detail)
+        : response.statusText || "Download failed";
     throw new ApiError(
-      response.status === 422 ? "VALIDATION_ERROR" : parsed.code,
-      parsed.message,
+      response.status === 401 ? "UNAUTHORIZED" : response.status === 404 ? "NOT_FOUND" : "DOWNLOAD_ERROR",
+      message,
       response.status,
       body
     );
   }
 
-  return body as ExcelSubmissionResponse;
+  const blob = await response.blob();
+  const disposition = response.headers.get("Content-Disposition");
+  let filename = `${reportType}_Template.xlsx`;
+  if (disposition) {
+    const match = /filename[*]?=(?:UTF-8'')?["']?([^"'\s;]+)["']?/i.exec(disposition) ?? /filename=["']?([^"'\s;]+)["']?/i.exec(disposition);
+    if (match?.[1]) filename = match[1].replace(/^["']|["']$/g, "").trim();
+  }
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+/** GET /api/v1/submission/{reference_number}/status */
+export async function getSubmissionStatus(referenceNumber: string): Promise<SubmissionStatusResponse> {
+  const res = await apiRequest<SubmissionStatusResponse | { success?: boolean; data?: Record<string, unknown> }>(
+    `/api/v1/submission/${encodeURIComponent(referenceNumber)}/status`,
+    { method: "GET" }
+  );
+  // Unwrap { success, data } if present; support reference_number from API
+  const raw = (res && typeof res === "object" && "data" in res && (res as { data?: unknown }).data) as Record<string, unknown> | undefined;
+  if (raw && typeof raw === "object") {
+    return {
+      reference: (raw.reference as string) ?? (raw.reference_number as string) ?? referenceNumber,
+      status: String(raw.status ?? ""),
+      report_type: String(raw.report_type ?? ""),
+      submitted_at: String(raw.submitted_at ?? ""),
+      last_updated_at: raw.last_updated_at != null ? String(raw.last_updated_at) : undefined,
+      entity_report_id: raw.entity_report_id != null ? String(raw.entity_report_id) : undefined,
+      notes: raw.notes != null ? String(raw.notes) : undefined,
+    };
+  }
+  return res as SubmissionStatusResponse;
+}
+
+/** Raw list submission item from API (uses reference_number, etc.). */
+interface ApiSubmissionListItem {
+  id?: string;
+  reference_number: string;
+  report_type: string;
+  status: string;
+  current_stage?: string;
+  submitted_at: string;
+  submission_method?: string;
+  entity_reference?: string | null;
+}
+
+/** Wrapped list response from API: { success, data: { submissions, pagination } }. */
+interface ApiListSubmissionsResponse {
+  success?: boolean;
+  data?: {
+    submissions: ApiSubmissionListItem[];
+    pagination: { page: number; limit: number; total: number; total_pages: number };
+  };
+}
+
+function mapApiSubmissionToItem(api: ApiSubmissionListItem): SubmissionListItem {
+  return {
+    reference: api.reference_number,
+    status: api.status,
+    report_type: api.report_type,
+    submitted_at: api.submitted_at,
+    current_stage: api.current_stage,
+    submission_method: api.submission_method,
+    entity_reference: api.entity_reference,
+  };
+}
+
+/** GET /api/v1/submission/ - List submissions with filters and pagination */
+export async function listSubmissions(params: ListSubmissionsParams = {}): Promise<ListSubmissionsResponse> {
+  const q = new URLSearchParams();
+  if (params.status != null) q.set("status", params.status);
+  if (params.report_type != null) q.set("report_type", params.report_type);
+  if (params.start_date != null) q.set("start_date", params.start_date);
+  if (params.end_date != null) q.set("end_date", params.end_date);
+  if (params.search != null) q.set("search", params.search);
+  if (params.page != null) q.set("page", String(params.page));
+  if (params.limit != null) q.set("limit", String(params.limit));
+  const qs = q.toString();
+  const url = `${API_BASE_URL}/api/v1/submission/${qs ? `?${qs}` : ""}`;
+  const token = getStoredToken();
+  const headers: HeadersInit = { Accept: "application/json" };
+  if (token) (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  const response = await fetch(url, { method: "GET", headers, credentials: "omit" });
+  const isJson = response.headers.get("content-type")?.includes("application/json");
+  const body = isJson ? await response.json().catch(() => ({})) : {};
+  if (!response.ok) {
+    const fallback = "Failed to load submissions";
+    const parsed =
+      typeof body === "object" && body !== null
+        ? parseErrorBody(body, response.status, fallback)
+        : { code: "LIST_ERROR", message: response.statusText || fallback };
+    throw new ApiError(parsed.code, parsed.message, response.status, body);
+  }
+  // API returns { success, data: { submissions, pagination } }
+  const wrapped = body as ApiListSubmissionsResponse;
+  if (wrapped?.data?.submissions && wrapped?.data?.pagination) {
+    const { submissions: apiSubmissions, pagination } = wrapped.data;
+    return {
+      submissions: apiSubmissions.map(mapApiSubmissionToItem),
+      total: pagination.total,
+      page: pagination.page,
+      limit: pagination.limit,
+      total_pages: pagination.total_pages,
+    };
+  }
+  // Fallback: assume response is already ListSubmissionsResponse (flat submissions/total/page/limit)
+  const flat = body as ListSubmissionsResponse;
+  if (Array.isArray(flat?.submissions)) {
+    return {
+      submissions: flat.submissions,
+      total: flat.total ?? 0,
+      page: flat.page ?? 1,
+      limit: flat.limit ?? 25,
+      total_pages: flat.total_pages,
+    };
+  }
+  return { submissions: [], total: 0, page: 1, limit: 25 };
+}
+
+/** GET /api/v1/submission/recent */
+export async function getRecentSubmissions(limit: number = 10): Promise<ListSubmissionsResponse> {
+  return apiRequest<ListSubmissionsResponse>(`/api/v1/submission/recent?limit=${Math.min(50, Math.max(1, limit))}`, {
+    method: "GET",
+  });
+}
+
+// --- Admin submissions (all entities) ---
+
+/** GET /api/v1/admin/submissions/recent - List recent submissions from all entities. Requires TECH_ADMIN, OIC, or SUPER_ADMIN. */
+export async function getAdminRecentSubmissions(limit: number = 10): Promise<ListSubmissionsResponse> {
+  const safeLimit = Math.min(50, Math.max(1, limit));
+  const url = `${API_BASE_URL}/api/v1/admin/submissions/recent?limit=${safeLimit}`;
+  const token = getStoredToken();
+  const headers: HeadersInit = { Accept: "application/json" };
+  if (token) (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  const response = await fetch(url, { method: "GET", headers, credentials: "omit" });
+  const isJson = response.headers.get("content-type")?.includes("application/json");
+  const body = isJson ? await response.json().catch(() => ({})) : {};
+  if (!response.ok) {
+    const fallback = "Failed to load recent submissions";
+    const parsed =
+      typeof body === "object" && body !== null
+        ? parseErrorBody(body, response.status, fallback)
+        : { code: "ADMIN_SUBMISSIONS_ERROR", message: response.statusText || fallback };
+    throw new ApiError(parsed.code, parsed.message, response.status, body);
+  }
+  const wrapped = body as ApiListSubmissionsResponse;
+  if (wrapped?.data?.submissions && wrapped?.data?.pagination) {
+    const { submissions: apiSubmissions, pagination } = wrapped.data;
+    return {
+      submissions: apiSubmissions.map(mapApiSubmissionToItem),
+      total: pagination.total,
+      page: pagination.page,
+      limit: pagination.limit,
+      total_pages: pagination.total_pages,
+    };
+  }
+  const flat = body as ListSubmissionsResponse;
+  if (Array.isArray(flat?.submissions)) {
+    return {
+      submissions: flat.submissions,
+      total: flat.total ?? 0,
+      page: flat.page ?? 1,
+      limit: flat.limit ?? 25,
+      total_pages: flat.total_pages,
+    };
+  }
+  return { submissions: [], total: 0, page: 1, limit: safeLimit };
+}
+
+/** GET /api/v1/admin/submissions/csv - Export recent submissions from all entities as CSV. Requires TECH_ADMIN, OIC, or SUPER_ADMIN. Triggers browser download. */
+export async function getAdminSubmissionsCsv(limit: number = 10): Promise<void> {
+  const safeLimit = Math.min(50, Math.max(1, limit));
+  const url = `${API_BASE_URL}/api/v1/admin/submissions/csv?limit=${safeLimit}`;
+  const token = getStoredToken();
+  const headers: HeadersInit = {};
+  if (token) (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  const response = await fetch(url, { method: "GET", headers, credentials: "omit" });
+  if (!response.ok) {
+    const ct = response.headers.get("content-type") || "";
+    const body = ct.includes("application/json")
+      ? await response.json().catch(() => ({}))
+      : await response.text();
+    const message =
+      typeof body === "object" && body !== null && "detail" in body
+        ? String((body as { detail?: unknown }).detail)
+        : response.statusText || "Export failed";
+    throw new ApiError("EXPORT_ERROR", message, response.status, body);
+  }
+  const blob = await response.blob();
+  const disposition = response.headers.get("Content-Disposition");
+  let filename = "submissions_export.csv";
+  if (disposition) {
+    const match = /filename[*]?=(?:UTF-8'')?["']?([^"'\s;]+)["']?/i.exec(disposition) ?? /filename=["']?([^"'\s;]+)["']?/i.exec(disposition);
+    if (match?.[1]) filename = match[1].replace(/^["']|["']$/g, "").trim();
+  }
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }

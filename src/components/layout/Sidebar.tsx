@@ -29,6 +29,7 @@ import {
   Lock,
   Building2,
   Key,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -62,25 +63,20 @@ const withHome = (sections: NavSection[]) => [HOME_SECTION, ...sections];
 export const getNavigationByRole = (role: UserRole): NavSection[] => {
   switch (role) {
     case "reporting_entity":
+      // 2.1 Reporting Entity Workspace — no Compliance & Validation access
       return withHome([
         {
-          label: "Reporting",
+          label: "Reporting Entity",
           items: [
             { title: "Submit Report", href: "/submit", icon: Upload },
+            { title: "My Submissions", href: "/submissions", icon: FileText, badge: 12 },
+            { title: "Resubmissions", href: "/resubmissions", icon: RotateCcw, badge: 2, badgeVariant: "warning" },
+            { title: "Submission Statistics", href: "/statistics", icon: BarChart3 },
             { title: "My Submissions", href: "/submissions", icon: FileText },
             { title: "Resubmissions", href: "/resubmissions", icon: RotateCcw },
             { title: "Statistics", href: "/statistics", icon: BarChart3 },
             { title: "My Entity", href: "/my-entity", icon: Building2 },
             { title: "API Credentials", href: "/api-credentials", icon: Key },
-          ],
-        },
-        {
-          label: "Compliance & Validation",
-          items: [
-            { title: "Validation Queue", href: "/compliance/validation", icon: FileCheck },
-            { title: "Manual Validation Queue", href: "/compliance/validation-queue", icon: Inbox },
-            { title: "Validation Audit Logs", href: "/compliance/validation-audit-logs", icon: Shield },
-            { title: "CTR Review", href: "/compliance/ctr-review", icon: FileText },
           ],
         },
       ]);
@@ -98,6 +94,7 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
         },
       ]);
     case "head_of_compliance":
+      // 2.2 Compliance Workspace
       return withHome([
         {
           label: "Management",
@@ -127,18 +124,29 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
         },
       ]);
     case "head_of_analysis":
+      // 2.3 Analysis Workspace + 2.4 Case & Intelligence
       return withHome([
         {
           label: "Analysis",
           items: [
-            { title: "Manual Validation Queue", href: "/compliance/validation-queue", icon: Inbox },
-            { title: "My Queue", href: "/analysis-queue", icon: ClipboardList },
+            ...(role === "analyst"
+              ? [{ title: "My Assigned Reports", href: "/my-assignments", icon: ClipboardList }]
+              : []),
+            { title: "Analysis Queue", href: "/analysis-queue", icon: Inbox, badge: 6 },
+            ...(role === "head_of_analysis"
+              ? [
+                  { title: "Workload Management", href: "/supervisor/workload", icon: Users },
+                  { title: "Assignment Queue", href: "/supervisor/assignment-queue", icon: ClipboardList },
+                ]
+              : []),
             { title: "Subject Profiles", href: "/subjects", icon: Users },
+            { title: "Analysis Alerts", href: "/analysis-alerts", icon: AlertTriangle, badge: 2, badgeVariant: "critical" },
+            { title: "Analysis Dashboards", href: "/analysis-queue", icon: LayoutDashboard },
             { title: "Alerts", href: "/analysis-alerts", icon: AlertTriangle },
           ],
         },
         {
-          label: "Cases",
+          label: "Case & Intelligence",
           items: [
             { title: "My Cases", href: "/cases", icon: FolderOpen },
             { title: "Intelligence", href: "/intelligence", icon: Send },
@@ -154,10 +162,21 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
       ]);
     case "director_ops":
     case "oic":
+      // 2.6 Audit & Oversight + 2.4 Case & Intelligence (OIC Dissemination)
       return withHome([
         {
-          label: "Oversight",
+          label: "Audit & Oversight",
           items: [
+            { title: "Audit Logs", href: "/audit", icon: Shield },
+            ...(role === "oic"
+              ? [
+                  { title: "Entity submissions", href: "/admin/submissions", icon: FileText },
+                  { title: "Break-Glass Access Logs", href: "/sessions", icon: Lock },
+                ]
+              : []),
+            { title: "System Performance Metrics", href: "/metrics", icon: TrendingUp },
+            { title: "Executive Dashboards", href: "/dashboards", icon: LayoutDashboard },
+            { title: "System Alerts", href: "/compliance/alerts/active", icon: AlertTriangle },
             { title: "Dashboards", href: "/dashboards", icon: BarChart3 },
             { title: "Validation Queue", href: "/compliance/validation", icon: FileCheck },
             { title: "Cases", href: "/all-cases", icon: FolderOpen },
@@ -165,66 +184,87 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
           ],
         },
         {
-          label: "Audit",
+          label: "Case & Intelligence",
           items: [
-            { title: "Audit Logs", href: "/audit", icon: Shield },
-            { title: "System Metrics", href: "/metrics", icon: TrendingUp },
+            { title: "Cases", href: "/all-cases", icon: FolderOpen },
+            { title: "Dissemination", href: "/dissemination", icon: Send, badge: 3 },
           ],
         },
       ]);
     case "tech_admin":
+      // 2.7 Administration Workspace
       return withHome([
         {
           label: "Administration",
           items: [
             { title: "User Management", href: "/users", icon: Users },
-            { title: "Entities", href: "/entities", icon: FileText },
-            { title: "Roles", href: "/admin/roles", icon: ShieldCheck },
-            { title: "Register Entity", href: "/admin/entities/register", icon: UserPlus },
+            { title: "Reporting Entity Management", href: "/entities", icon: Building2 },
+            { title: "Entity submissions", href: "/admin/submissions", icon: FileText },
+            { title: "API Keys", href: "/admin/api-keys", icon: Key },
+            { title: "Register New Entity", href: "/admin/entities/register", icon: UserPlus },
             { title: "Create User", href: "/admin/users/create", icon: UserRoundPlus },
+            { title: "Manage Roles", href: "/admin/roles", icon: ShieldCheck },
             { title: "Create Super Admin", href: "/admin/super-admin", icon: Crown },
             { title: "Active Sessions", href: "/sessions", icon: Clock },
-            { title: "Security", href: "/security", icon: Lock },
-            { title: "System Config", href: "/config", icon: Settings },
+            { title: "Security Settings", href: "/security", icon: Lock },
+            { title: "System Configuration", href: "/config", icon: Settings },
           ],
         },
       ]);
     case "super_admin":
+      // Super Admin: Compliance, Analysis, Case & Intelligence, Audit, Administration (no Reporting Entity workspace)
       return withHome([
         {
-          label: "Reporting",
-          items: [
-            { title: "Submit Report", href: "/submit", icon: Upload },
-            { title: "My Submissions", href: "/submissions", icon: FileText },
-            { title: "Resubmissions", href: "/resubmissions", icon: RotateCcw },
-            { title: "Statistics", href: "/statistics", icon: BarChart3 },
-            { title: "My Entity", href: "/my-entity", icon: Building2 },
-            { title: "API Credentials", href: "/api-credentials", icon: Key },
-          ],
-        },
-        {
-          label: "Compliance & Validation",
+          label: "Compliance",
           items: [
             { title: "Assignment Queue", href: "/supervisor/assignment-queue", icon: ClipboardList },
             { title: "Team Workload", href: "/supervisor/workload", icon: Users },
             { title: "Validation Queue", href: "/compliance/validation", icon: FileCheck },
             { title: "Manual Validation Queue", href: "/compliance/validation-queue", icon: Inbox },
+            { title: "CTR Review Queue", href: "/compliance/ctr-review", icon: FileText },
+            { title: "Escalation Queue", href: "/compliance/escalation/pending", icon: TrendingUp },
+            { title: "Compliance Alerts", href: "/compliance/alerts/active", icon: AlertTriangle },
+            { title: "Compliance Dashboards", href: "/compliance/dashboards/processing", icon: LayoutDashboard },
             { title: "Validation Audit Logs", href: "/compliance/validation-audit-logs", icon: Shield },
-            { title: "CTR Review", href: "/compliance/ctr-review", icon: FileText },
+          ],
+        },
+        {
+          label: "Analysis",
+          items: [
+            { title: "Analysis Queue", href: "/analysis-queue", icon: Inbox },
+            { title: "Subject Profiles", href: "/subjects", icon: Users },
+            { title: "My Assignments", href: "/my-assignments", icon: ClipboardList },
+          ],
+        },
+        {
+          label: "Case & Intelligence",
+          items: [
+            { title: "My Cases", href: "/cases", icon: FolderOpen },
+            { title: "Intelligence", href: "/intelligence", icon: Send },
+          ],
+        },
+        {
+          label: "Audit & Oversight",
+          items: [
+            { title: "Audit Logs", href: "/audit", icon: Shield },
+            { title: "System Performance Metrics", href: "/metrics", icon: TrendingUp },
+            { title: "Executive Dashboards", href: "/dashboards", icon: LayoutDashboard },
           ],
         },
         {
           label: "Administration",
           items: [
             { title: "User Management", href: "/users", icon: Users },
-            { title: "Entities", href: "/entities", icon: FileText },
-            { title: "Roles", href: "/admin/roles", icon: ShieldCheck },
-            { title: "Register Entity", href: "/admin/entities/register", icon: UserPlus },
+            { title: "Reporting Entity Management", href: "/entities", icon: Building2 },
+            { title: "Entity submissions", href: "/admin/submissions", icon: FileText },
+            { title: "API Keys", href: "/admin/api-keys", icon: Key },
+            { title: "Register New Entity", href: "/admin/entities/register", icon: UserPlus },
             { title: "Create User", href: "/admin/users/create", icon: UserRoundPlus },
+            { title: "Manage Roles", href: "/admin/roles", icon: ShieldCheck },
             { title: "Create Super Admin", href: "/admin/super-admin", icon: Crown },
             { title: "Active Sessions", href: "/sessions", icon: Clock },
-            { title: "Security", href: "/security", icon: Lock },
-            { title: "System Config", href: "/config", icon: Settings },
+            { title: "Security Settings", href: "/security", icon: Lock },
+            { title: "System Configuration", href: "/config", icon: Settings },
           ],
         },
       ]);

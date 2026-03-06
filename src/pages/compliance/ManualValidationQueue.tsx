@@ -85,8 +85,8 @@ export default function ManualValidationQueue() {
   }, [items]);
 
   const breadcrumbItems = [
-    { label: "Compliance", href: "/compliance/validation-queue" },
-    { label: pageTitle, href: "/compliance/validation-queue" },
+    { label: "Compliance", href: "/compliance/manual-validation" },
+    { label: pageTitle, href: "/compliance/manual-validation" },
   ];
 
   return (
@@ -115,9 +115,7 @@ export default function ManualValidationQueue() {
               onReset={() => {
                 setPage(1);
                 resetQueueFilters();
-                if (Object.keys(roleDefaults).length > 0) {
-                  setQueueFilters(roleDefaults);
-                }
+                setQueueFilters(roleDefaults);
               }}
             />
 
@@ -127,7 +125,7 @@ export default function ManualValidationQueue() {
               ) : (
                 <ValidationQueueTable
                   items={sortedItems}
-                  onViewDetails={(submissionId) => navigate(`/compliance/validation-queue/${submissionId}`)}
+                  onViewDetails={(submissionId) => navigate(`/compliance/manual-validation/${submissionId}`)}
                 />
               )}
             </div>

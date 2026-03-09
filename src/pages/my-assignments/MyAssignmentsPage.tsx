@@ -24,10 +24,13 @@ import { useMyAssignments } from "@/hooks/useMyAssignments";
 import { MyWorkloadCard } from "@/components/assignment/MyWorkloadCard";
 import { DeadlineBadge } from "@/components/assignment/DeadlineBadge";
 import type { AssignmentStatus } from "@/types/assignment";
+import { ApiError, taskApi } from "@/lib/api";
+import { useToast } from "@/components/ui/use-toast";
 import { Inbox, RefreshCw, Search } from "lucide-react";
 
 export default function MyAssignmentsPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<AssignmentStatus | "all">("all");
   const [search, setSearch] = useState("");
 
@@ -44,6 +47,34 @@ export default function MyAssignmentsPage() {
   const breadcrumbItems = [
     { label: "My Assignments", icon: <Inbox className="h-5 w-5" /> },
   ];
+
+  const openAssignment = async (assignment: {
+    report_id: string;
+    workflow_type: string;
+  }) => {
+    try {
+      const access = await taskApi.checkReportAccess(assignment.report_id);
+      if (!access.has_access) {
+        toast({
+          title: "Access denied",
+          description: "This report is not assigned to you.",
+          variant: "destructive",
+        });
+        return;
+      }
+      navigate(
+        assignment.workflow_type === "compliance"
+          ? `/compliance/validation-queue/${assignment.report_id}`
+          : `/analysis-queue`
+      );
+    } catch (err) {
+      toast({
+        title: "Unable to open assignment",
+        description: err instanceof ApiError ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <MainLayout>
@@ -121,13 +152,7 @@ export default function MyAssignmentsPage() {
                         <TableRow
                           key={row.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() =>
-                            navigate(
-                              row.workflow_type === "compliance"
-                                ? `/compliance/validation-queue/${row.report_id}`
-                                : `/analysis-queue`
-                            )
-                          }
+                          onClick={() => openAssignment(row)}
                         >
                           <TableCell className="font-medium">{row.report_reference}</TableCell>
                           <TableCell>{row.report_type}</TableCell>

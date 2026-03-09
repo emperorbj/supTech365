@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import type { MouseEvent } from "react";
 import type { NotificationResponse } from "@/types/assignment";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -6,10 +7,16 @@ import { cn } from "@/lib/utils";
 interface NotificationItemProps {
   notification: NotificationResponse;
   onMarkRead?: (id: string) => void;
+  onOpen?: (notification: NotificationResponse) => void | Promise<void>;
 }
 
-export function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
-  const handleClick = () => {
+export function NotificationItem({ notification, onMarkRead, onOpen }: NotificationItemProps) {
+  const handleClick = async (event: MouseEvent<HTMLAnchorElement>) => {
+    if (onOpen) {
+      event.preventDefault();
+      await onOpen(notification);
+      return;
+    }
     if (!notification.is_read && onMarkRead) onMarkRead(notification.id);
   };
 

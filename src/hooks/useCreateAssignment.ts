@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CreateAssignmentRequest } from "@/types/assignment";
-import * as assignmentApi from "@/lib/assignmentApi";
+import { taskApi } from "@/lib/api";
 
 export function useCreateAssignment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateAssignmentRequest) => assignmentApi.createAssignment(data),
+    mutationFn: (data: CreateAssignmentRequest) => taskApi.createAssignment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assignmentQueue"] });
       queryClient.invalidateQueries({ queryKey: ["workload"] });

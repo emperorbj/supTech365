@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import * as assignmentApi from "@/lib/assignmentApi";
+import { taskApi } from "@/lib/api";
 
 export function useMyWorkload() {
   return useQuery({
     queryKey: ["myWorkload"],
-    queryFn: () => assignmentApi.getMyWorkload(),
+    queryFn: () => taskApi.getMyWorkload(),
     staleTime: 60 * 1000,
   });
 }

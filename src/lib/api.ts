@@ -3,6 +3,23 @@
  * Base URL: https://liberia-suptech.onrender.com
  * Auth: JWT Bearer token (access_token from login)
  */
+import type {
+  AssignmentQueueFilters,
+  AssignmentResponse,
+  CreateAssignmentRequest,
+  MyAssignmentFilters,
+  NotificationFilters,
+  NotificationResponse,
+  PendingAssignmentReport,
+  WorkloadItemResponse,
+} from "@/types/assignment";
+import type {
+  SubjectProfileResponse,
+  SubjectReportsResponse,
+  SubjectSearchResponse,
+  SubjectStatisticsResponse,
+  SubjectType,
+} from "@/types/subject";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "https://liberia-suptech.onrender.com";
@@ -979,6 +996,294 @@ export interface ListSubmissionsParams {
   page?: number;
   limit?: number;
 }
+
+// --- Subject Profiling API ---
+
+export const subjectApi = {
+  searchSubjects: async (params: {
+    q: string;
+    subject_type?: SubjectType;
+    page?: number;
+    page_size?: number;
+  }): Promise<SubjectSearchResponse> => {
+    const q = new URLSearchParams();
+    q.set("q", params.q);
+    if (params.subject_type) q.set("subject_type", params.subject_type);
+    if (params.page != null) q.set("page", String(params.page));
+    if (params.page_size != null) q.set("page_size", String(params.page_size));
+    return apiRequest<SubjectSearchResponse>(`/api/v1/subjects/search?${q.toString()}`, {
+      method: "GET",
+    });
+  },
+
+  getSubjectProfile: async (uuid: string): Promise<SubjectProfileResponse> => {
+    return apiRequest<SubjectProfileResponse>(`/api/v1/subjects/${encodeURIComponent(uuid)}`, {
+      method: "GET",
+    });
+  },
+
+  getSubjectReports: async (
+    uuid: string,
+    params: { report_type?: "STR" | "CTR" | "ALL"; page?: number; page_size?: number } = {}
+  ): Promise<SubjectReportsResponse> => {
+    const q = new URLSearchParams();
+    if (params.report_type) q.set("report_type", params.report_type);
+    if (params.page != null) q.set("page", String(params.page));
+    if (params.page_size != null) q.set("page_size", String(params.page_size));
+    const qs = q.toString();
+    return apiRequest<SubjectReportsResponse>(
+      `/api/v1/subjects/${encodeURIComponent(uuid)}/reports${qs ? `?${qs}` : ""}`,
+      { method: "GET" }
+    );
+  },
+
+  getSubjectStatistics: async (uuid: string): Promise<SubjectStatisticsResponse> => {
+    return apiRequest<SubjectStatisticsResponse>(
+      `/api/v1/subjects/${encodeURIComponent(uuid)}/statistics`,
+      { method: "GET" }
+    );
+  },
+};
+
+// --- Task Assignment & Workload API (Feature 6) ---
+
+export interface AssignmentListResponse {
+  items: AssignmentResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface AssignmentQueueListResponse {
+  items: PendingAssignmentReport[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface WorkloadListResponse {
+  items: WorkloadItemResponse[];
+  total: number;
+}
+
+export interface MyWorkloadResponse {
+  total: number;
+  by_type: { ctrs: number; strs: number; escalated_ctrs?: number; cases?: number };
+}
+
+export interface NotificationListResponse {
+  items: NotificationResponse[];
+  unread_count: number;
+}
+
+export interface ReportAccessResponse {
+  has_access: boolean;
+}
+
+function unwrapData<T>(value: T | { success?: boolean; data?: T }): T {
+  if (value && typeof value === "object" && "data" in (value as Record<string, unknown>)) {
+    const data = (value as { data?: T }).data;
+    if (data !== undefined) return data;
+  }
+  return value as T;
+}
+
+function normalizePaged<T>(
+  value: unknown,
+  fallbackPage: number = 1,
+  fallbackPageSize: number = 20
+): { items: T[]; total: number; page: number; page_size: number } {
+  const unwrapped = unwrapData(value as any) as unknown;
+  if (unwrapped && typeof unwrapped === "object") {
+    const obj = unwrapped as Record<string, unknown>;
+    const items = Array.isArray(obj.items)
+      ? (obj.items as T[])
+      : Array.isArray(obj.assignments)
+        ? (obj.assignments as T[])
+        : [];
+    const pagination =
+      obj.pagination && typeof obj.pagination === "object"
+        ? (obj.pagination as Record<string, unknown>)
+        : undefined;
+    return {
+      items,
+      total:
+        typeof obj.total === "number"
+          ? obj.total
+          : typeof pagination?.total_items === "number"
+            ? (pagination.total_items as number)
+            : items.length,
+      page:
+        typeof obj.page === "number"
+          ? obj.page
+          : typeof pagination?.page === "number"
+            ? (pagination.page as number)
+            : fallbackPage,
+      page_size:
+        typeof obj.page_size === "number"
+          ? obj.page_size
+          : typeof pagination?.page_size === "number"
+            ? (pagination.page_size as number)
+            : fallbackPageSize,
+    };
+  }
+  return { items: [], total: 0, page: fallbackPage, page_size: fallbackPageSize };
+}
+
+export const taskApi = {
+  createAssignment: async (payload: CreateAssignmentRequest): Promise<AssignmentResponse> => {
+    const res = await apiRequest<AssignmentResponse | { success?: boolean; data?: AssignmentResponse }>(
+      "/api/v1/tasks",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+    return unwrapData<AssignmentResponse>(res);
+  },
+
+  getAssignmentQueue: async (filters: AssignmentQueueFilters = {}): Promise<AssignmentQueueListResponse> => {
+    const q = new URLSearchParams();
+    if (filters.report_type != null) q.set("report_type", filters.report_type);
+    if (filters.entity_id != null) q.set("entity_id", filters.entity_id);
+    if (filters.search != null) q.set("search", filters.search);
+    if (filters.page != null) q.set("page", String(filters.page));
+    if (filters.page_size != null) q.set("page_size", String(filters.page_size));
+    const qs = q.toString();
+    const res = await apiRequest<AssignmentQueueListResponse | { success?: boolean; data?: AssignmentQueueListResponse }>(
+      `/api/v1/tasks${qs ? `?${qs}` : ""}`,
+      { method: "GET" }
+    );
+    return normalizePaged<PendingAssignmentReport>(res, filters.page ?? 1, filters.page_size ?? 20);
+  },
+
+  getAssignment: async (id: string): Promise<AssignmentResponse> => {
+    const res = await apiRequest<AssignmentResponse | { success?: boolean; data?: AssignmentResponse }>(
+      `/api/v1/tasks/${encodeURIComponent(id)}`,
+      { method: "GET" }
+    );
+    return unwrapData<AssignmentResponse>(res);
+  },
+
+  getOfficerWorkloads: async (teamId?: string): Promise<WorkloadItemResponse[]> => {
+    const qs = teamId ? `?team_id=${encodeURIComponent(teamId)}` : "";
+    const res = await apiRequest<WorkloadItemResponse[] | WorkloadListResponse | { success?: boolean; data?: WorkloadItemResponse[] | WorkloadListResponse }>(
+      `/api/v1/tasks/workload/officers${qs}`,
+      { method: "GET" }
+    );
+    const unwrapped = unwrapData<WorkloadItemResponse[] | WorkloadListResponse>(res);
+    if (Array.isArray(unwrapped)) return unwrapped;
+    const workloads = (unwrapped as Record<string, unknown>)?.workloads;
+    if (Array.isArray(workloads)) return workloads as WorkloadItemResponse[];
+    return Array.isArray(unwrapped.items) ? unwrapped.items : [];
+  },
+
+  getAnalystWorkloads: async (): Promise<WorkloadItemResponse[]> => {
+    const res = await apiRequest<WorkloadItemResponse[] | WorkloadListResponse | { success?: boolean; data?: WorkloadItemResponse[] | WorkloadListResponse }>(
+      "/api/v1/tasks/workload/officers",
+      { method: "GET" }
+    );
+    const unwrapped = unwrapData<WorkloadItemResponse[] | WorkloadListResponse>(res);
+    return Array.isArray(unwrapped) ? unwrapped : Array.isArray(unwrapped.items) ? unwrapped.items : [];
+  },
+
+  getMyAssignments: async (filters: MyAssignmentFilters = {}): Promise<AssignmentListResponse> => {
+    const q = new URLSearchParams();
+    if (filters.status != null) q.set("status", filters.status);
+    if (filters.date_from != null) q.set("date_from", filters.date_from);
+    if (filters.date_to != null) q.set("date_to", filters.date_to);
+    if (filters.search != null) q.set("search", filters.search);
+    if (filters.page != null) q.set("page", String(filters.page));
+    if (filters.page_size != null) q.set("page_size", String(filters.page_size));
+    const qs = q.toString();
+    const res = await apiRequest<AssignmentListResponse | { success?: boolean; data?: AssignmentListResponse }>(
+      `/api/v1/tasks/my-assignments${qs ? `?${qs}` : ""}`,
+      { method: "GET" }
+    );
+    return normalizePaged<AssignmentResponse>(res, filters.page ?? 1, filters.page_size ?? 20);
+  },
+
+  getMyWorkload: async (): Promise<MyWorkloadResponse> => {
+    const res = await apiRequest<
+      | MyWorkloadResponse
+      | {
+          user_id?: string;
+          user_name?: string;
+          role?: string;
+          workload_count?: number;
+          breakdown?: {
+            active_ctrs?: number;
+            active_strs?: number;
+            active_escalated_ctrs?: number;
+            active_cases?: number;
+          };
+        }
+      | { success?: boolean; data?: MyWorkloadResponse }
+    >(
+      "/api/v1/tasks/workload/me",
+      { method: "GET" }
+    );
+    const unwrapped = unwrapData<MyWorkloadResponse | Record<string, unknown>>(res as any);
+    if (unwrapped && typeof unwrapped === "object" && "workload_count" in unwrapped) {
+      const b = (unwrapped as Record<string, unknown>).breakdown as Record<string, unknown> | undefined;
+      const total = Number((unwrapped as Record<string, unknown>).workload_count ?? 0);
+      return {
+        total,
+        by_type: {
+          ctrs: Number(b?.active_ctrs ?? 0),
+          strs: Number(b?.active_strs ?? 0),
+          escalated_ctrs: Number(b?.active_escalated_ctrs ?? 0),
+          cases: Number(b?.active_cases ?? 0),
+        },
+      };
+    }
+    return unwrapped as MyWorkloadResponse;
+  },
+
+  getNotifications: async (filters: NotificationFilters = {}): Promise<NotificationListResponse> => {
+    const q = new URLSearchParams();
+    if (filters.is_read != null) q.set("is_read", String(filters.is_read));
+    if (filters.date_range != null) q.set("date_range", filters.date_range);
+    if (filters.page != null) q.set("page", String(filters.page));
+    if (filters.page_size != null) q.set("page_size", String(filters.page_size));
+    const qs = q.toString();
+    const res = await apiRequest<NotificationListResponse | { success?: boolean; data?: NotificationListResponse }>(
+      `/api/v1/tasks/notifications${qs ? `?${qs}` : ""}`,
+      { method: "GET" }
+    );
+    const unwrapped = unwrapData<NotificationListResponse | Record<string, unknown>>(res as any);
+    const items = Array.isArray((unwrapped as Record<string, unknown>)?.items)
+      ? ((unwrapped as Record<string, unknown>).items as NotificationResponse[])
+      : Array.isArray((unwrapped as Record<string, unknown>)?.notifications)
+        ? ((unwrapped as Record<string, unknown>).notifications as NotificationResponse[])
+        : [];
+    return {
+      items,
+      unread_count: typeof (unwrapped as Record<string, unknown>)?.unread_count === "number" ? ((unwrapped as Record<string, unknown>).unread_count as number) : 0,
+    };
+  },
+
+  markNotificationRead: async (id: string): Promise<NotificationResponse> => {
+    const res = await apiRequest<NotificationResponse | { success?: boolean; data?: NotificationResponse }>(
+      `/api/v1/tasks/notifications/${encodeURIComponent(id)}/read`,
+      { method: "PATCH" }
+    );
+    return unwrapData<NotificationResponse>(res);
+  },
+
+  markAllNotificationsRead: async (): Promise<void> => {
+    const unread = await taskApi.getNotifications({ is_read: false, page: 1, page_size: 100 });
+    await Promise.all(unread.items.map((item) => taskApi.markNotificationRead(item.id)));
+  },
+
+  checkReportAccess: async (reportId: string): Promise<ReportAccessResponse> => {
+    const res = await apiRequest<ReportAccessResponse | { success?: boolean; data?: ReportAccessResponse }>(
+      `/api/v1/tasks/reports/${encodeURIComponent(reportId)}/access`,
+      { method: "GET" }
+    );
+    return unwrapData<ReportAccessResponse>(res);
+  },
+};
 
 /** GET /api/v1/submission/templates/{report_type} - Download Excel template (STR or CTR). Triggers browser download. */
 export async function downloadSubmissionTemplate(

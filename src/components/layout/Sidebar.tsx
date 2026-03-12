@@ -55,7 +55,7 @@ interface NavSection {
 
 const HOME_SECTION: NavSection = {
   label: "Main",
-  items: [{ title: "Home", href: "/", icon: Home }],
+  items: [{ title: "Dashboard", href: "/", icon: Home }],
 };
 
 const withHome = (sections: NavSection[]) => [HOME_SECTION, ...sections];
@@ -72,59 +72,57 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
             { title: "My Submissions", href: "/submissions", icon: FileText, badge: 12 },
             { title: "Resubmissions", href: "/resubmissions", icon: RotateCcw, badge: 2, badgeVariant: "warning" },
             { title: "Submission Statistics", href: "/statistics", icon: BarChart3 },
+            { title: "My Submissions", href: "/submissions", icon: FileText },
+            { title: "Resubmissions", href: "/resubmissions", icon: RotateCcw },
+            { title: "Statistics", href: "/statistics", icon: BarChart3 },
             { title: "My Entity", href: "/my-entity", icon: Building2 },
             { title: "API Credentials", href: "/api-credentials", icon: Key },
           ],
         },
       ]);
     case "compliance_officer":
-    case "head_of_compliance":
-      // 2.2 Compliance Workspace
       return withHome([
         {
           label: "Compliance",
           items: [
-            ...(role === "compliance_officer"
-              ? [{ title: "My Assigned Validations", href: "/my-assignments", icon: ClipboardList }]
-              : []),
-            { title: "Validation Queue", href: "/compliance/validation", icon: FileCheck, badge: 8 },
-            { title: "Manual Validation Queue", href: "/compliance/validation-queue", icon: Inbox },
-            { title: "CTR Review Queue", href: "/compliance/ctr-review", icon: FileText, badge: 15 },
-            { title: "Overdue CTRs", href: "/compliance/ctr-review/overdue", icon: Clock },
-            ...(role === "head_of_compliance"
-              ? [
-                  { title: "Escalation Queue", href: "/compliance/escalation/pending", icon: TrendingUp, badge: 4, badgeVariant: "warning" as const },
-                  { title: "Workload Management", href: "/compliance/workload/dashboard", icon: Users },
-                  { title: "Assign/Reassign CTRs", href: "/compliance/workload/assign", icon: UserPlus },
-                ]
-              : []),
-            { title: "Compliance Alerts", href: "/compliance/alerts/active", icon: AlertTriangle, badge: 3, badgeVariant: "critical" },
-            { title: "Alert by Rule Type", href: "/compliance/alerts/performance", icon: BarChart3 },
-            { title: "Compliance Dashboards", href: "/compliance/dashboards/processing", icon: LayoutDashboard },
+            { title: "Manual Validation", href: "/compliance/manual-validation", icon: Inbox },
+            { title: "Manual Validation History", href: "/compliance/manual-validation/history", icon: Clock },
+            { title: "CTR Review", href: "/compliance/ctr-review", icon: FileText },
+            { title: "CTR Review History", href: "/compliance/ctr-review/history", icon: Clock },
+            { title: "Escalated CTR", href: "/compliance/ctr-review/escalated", icon: AlertTriangle },
           ],
         },
+      ]);
+    case "head_of_compliance":
+      // 2.2 Compliance Workspace
+      return withHome([
         {
-          label: "My Activity",
+          label: "Management",
           items: [
-            { title: "Flagged CTRs", href: "/compliance/ctr-review/flagged", icon: Flag },
-            { title: "Validation Audit Logs", href: "/compliance/validation-audit-logs", icon: Shield },
+            { title: "CTR/STR Management Hub", href: "/compliance/validation/all", icon: FileText },
+            { title: "Escalations", href: "/compliance/escalation/pending", icon: TrendingUp },
+            { title: "Team Workload", href: "/supervisor/workload", icon: Users },
+            { title: "System Audit Logs", href: "/audit", icon: Shield },
           ],
         },
-        ...(role === "head_of_compliance"
-          ? [
-              {
-                label: "Management",
-                items: [
-                  { title: "Assignment Queue", href: "/supervisor/assignment-queue", icon: ClipboardList },
-                  { title: "Team Workload", href: "/supervisor/workload", icon: Users },
-                  { title: "Pending Validations", href: "/compliance/validation/pending", icon: Inbox, badge: 3, badgeVariant: "warning" as const },
-                  { title: "Assign Validations", href: "/compliance/validation/assign", icon: UserPlus },
-                ],
-              },
-            ]
-          : []),
       ]);
     case "analyst":
+      return withHome([
+        {
+          label: "STR Analysis",
+          items: [
+            { title: "Manual Validation", href: "/analysis/manual-validation", icon: Inbox },
+            { title: "Manual Validation History", href: "/analysis/manual-validation/history", icon: Clock },
+            { title: "STR Review", href: "/analysis/str-review", icon: FileText },
+            { title: "STR Review History", href: "/analysis/str-review/history", icon: Clock },
+            { title: "Escalated CTR", href: "/analysis/escalated-ctr", icon: AlertTriangle },
+            { title: "Subject Profiles", href: "/subjects", icon: Users },
+            { title: "Alerts", href: "/analysis-alerts", icon: AlertTriangle },
+            { title: "My Cases", href: "/cases", icon: FolderOpen },
+            { title: "Intelligence", href: "/intelligence", icon: Send },
+          ],
+        },
+      ]);
     case "head_of_analysis":
       // 2.3 Analysis Workspace + 2.4 Case & Intelligence
       return withHome([
@@ -144,13 +142,21 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
             { title: "Subject Profiles", href: "/subjects", icon: Users },
             { title: "Analysis Alerts", href: "/analysis-alerts", icon: AlertTriangle, badge: 2, badgeVariant: "critical" },
             { title: "Analysis Dashboards", href: "/analysis-queue", icon: LayoutDashboard },
+            { title: "Alerts", href: "/analysis-alerts", icon: AlertTriangle },
           ],
         },
         {
           label: "Case & Intelligence",
           items: [
-            { title: "My Cases", href: "/cases", icon: FolderOpen, badge: 4 },
+            { title: "My Cases", href: "/cases", icon: FolderOpen },
             { title: "Intelligence", href: "/intelligence", icon: Send },
+          ],
+        },
+        {
+          label: "Management",
+          items: [
+            { title: "Assignment Queue", href: "/supervisor/assignment-queue", icon: ClipboardList },
+            { title: "Team Workload", href: "/supervisor/workload", icon: Users },
           ],
         },
       ]);
@@ -171,6 +177,10 @@ export const getNavigationByRole = (role: UserRole): NavSection[] => {
             { title: "System Performance Metrics", href: "/metrics", icon: TrendingUp },
             { title: "Executive Dashboards", href: "/dashboards", icon: LayoutDashboard },
             { title: "System Alerts", href: "/compliance/alerts/active", icon: AlertTriangle },
+            { title: "Dashboards", href: "/dashboards", icon: BarChart3 },
+            { title: "Validation Queue", href: "/compliance/validation", icon: FileCheck },
+            { title: "Cases", href: "/all-cases", icon: FolderOpen },
+            { title: "Dissemination", href: "/dissemination", icon: Send },
           ],
         },
         {

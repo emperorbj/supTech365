@@ -144,7 +144,19 @@ export default function Login() {
       if (returnUrl && returnUrl.startsWith("/") && isReturnUrlAllowedForRole(returnUrl, role)) {
         navigate(returnUrl);
       } else {
-        navigate(defaultRoute);
+        const role = mapBackendRole(response.user.role);
+        const roleRoutes: Record<string, string> = {
+          reporting_entity: "/submissions",
+          compliance_officer: "/compliance/validation-queue",
+          head_of_compliance: "/compliance/validation-queue",
+          analyst: "/compliance/validation-queue",
+          head_of_analysis: "/compliance/validation-queue",
+          director_ops: "/compliance/validation",
+          oic: "/compliance/validation",
+          tech_admin: "/",
+          super_admin: "/",
+        };
+        navigate(roleRoutes[role] || "/");
       }
     } catch (err) {
       if (err instanceof ApiError) {
